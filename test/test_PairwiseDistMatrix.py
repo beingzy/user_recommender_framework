@@ -1,23 +1,22 @@
 """ unit-test for pairwise distance matrix
+Author: Yi Zhang <beingzy@gmail.com>
+Date: 2016/02/20
 """
 import unittest
 from os import getcwd
-from os.path import join
-from pandas import read_csv
-from PairwiseDistMatrix import PairwiseDistMatrix
+# load helpfer function
+from test.test_helper_func import load_test_data
+# import test package
+from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
+
 
 class TestPairwiseDistMatrix(unittest.TestCase):
 
     def setUp(self):
         """load test data"""
         _ROOT_DIR = getcwd()
-        _DATA_DIR = join(_ROOT_DIR, "data")
-
         # set up data
-        user_profile_df = read_csv( join(_DATA_DIR, 'user_profile.csv'), header=0)
-        user_ids = user_profile_df['id'].tolist()
-        user_profiles = user_profile_df.drop(['id'], axis=1).as_matrix()
-
+        user_ids, user_profiles, _ = load_test_data( _ROOT_DIR)
         # create DistMatrix Distance
         self.dist_matrix = PairwiseDistMatrix(user_ids, user_profiles)
         self.dist_matrix.update_distance_matrix()
