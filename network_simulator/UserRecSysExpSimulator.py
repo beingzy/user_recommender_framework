@@ -2,8 +2,9 @@
 Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/21
 """
+import os
 from os import getcwd
-from os.path import join
+from os.path import join, exists
 import warnings
 from datetime import datetime
 import numpy as np
@@ -21,7 +22,13 @@ class UserRecSysExpSimulator(object):
         self.name = name
         if outpath is None:
             # log file export path
-            self._outpath = getcwd()
+            self._outpath = join(getcwd(), name + "_exp_log")
+            if not exists(self._outpath):
+                os.mkdir(self._outpath)
+        else:
+            self._outpath = outpath
+            if not exists(self._outpath):
+                os.mkdir(self._outpath)
 
         # experimentation state information
         self._iteration = 0
@@ -210,6 +217,7 @@ class UserRecSysExpSimulator(object):
                 pbar.update()
 
         # export experiment information
-        outfile = self.name + start_time.strftime("%Y%m%d_%H%M%S.csv")
+        fname = self.name + start_time.strftime("_%Y%m%d_%H%M%S.csv")
+        outfile = join(self._outpath, fname)
         # write out test results
         DataFrame(exp_records).to_csv(outfile, header=True, index=False)
