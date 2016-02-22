@@ -1,4 +1,4 @@
-# Framework for Developing User Recommendation System
+# Framework for Developing User Recommendation System (in sub-module: user_recommender)
 The module is designed to support the prototype development and evaluation of user recommendation
  system. The current version includes following algorithm:
 
@@ -16,3 +16,9 @@ social connections, requiring more computational resource.
  - UserRecommenderMixin (UserRecommender.py)
  - NNUserRecommender (NNUserRecommender.py)
  - PairwiseDistMatrix (PairwiseDistMatrix.py)
+
+# Simulation Framework to evaluate the performance of user recommendation system (in sub-module: network_simulator)
+  * UserRecSysExpSimulator
+  * UserClickSimulator
+  * SocialNetworkEvaluator
+
