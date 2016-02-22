@@ -8,6 +8,7 @@ from network_simulator.SocialNetworkEvaluator import SocialNetworkEvaluator
 
 
 class TestSocialNetworkEvaluator(unittest.TestCase):
+
     def setUp(self):
         ref_user_connections = array([])
         eval_user_connections = array([])
@@ -17,4 +18,6 @@ class TestSocialNetworkEvaluator(unittest.TestCase):
         self._evaluator.load_eval_user_connections(eval_user_connections)
 
     def test_init_SocialNetworkEvaluator(self):
-        self.assertEqual(0, 0)
+        eval_scores = self._evaluator.get_score()
+        is_match = eval_scores["sim_score"] == 0 and eval_scores["dissim_score"] == 0
+        self.assertTrue(is_match)

@@ -6,11 +6,16 @@ from os import getcwd
 from os.path import join
 import warnings
 from datetime import datetime
+import numpy as np
+from numpy import array
+from pandas import DataFrame
 from tqdm import tqdm
-from user_recommender import UserRecommenderMixin
+from user_recommender.UserRecommenderMixin import UserRecommenderMixin
+from network_simulator.SocialNetworkEvaluator import EvaluatorMixin
 
 
 class UserRecSysExpSimulator(object):
+
     def __init__(self, name=None, outpath=None):
 
         self.name = name
@@ -24,6 +29,13 @@ class UserRecSysExpSimulator(object):
         # experiment ciritical components
         self._recommender = None
         self._clicker = None
+        self._evaluator = None
+
+        # data batch
+        self._now_user_ids = None
+        self._now_user_profiles = None
+        self._now_user_connections = None
+        self._ref_user_connections = None
 
         # experimentation information
         # initilize the experiment setting and can be modified anytime later
@@ -32,11 +44,29 @@ class UserRecSysExpSimulator(object):
         self.set_recommendation_size()
         self.set_max_iterations()
 
+    def load_now_user_ids(self, user_ids):
+        if isinstance(user_ids, list):
+            self._now_user_ids = user_ids
+        else:
+            raise ValueError("user_ids is not list.")
+
+    def laod_now_user_profiles(self, user_profiles):
+        if isinstance(user_profiles, np.ndarray):
+            self._now_user_profiles = user_profiles
+        else:
+            raise ValueError("user_profiles is not numpy.array object.")
+
+    def load_now_user_connetections(self, user_connections):
+        if isinstance(user_connections, np.ndarray):
+            self._now_user_connections = user_connections
+        else:
+            raise ValueError("user_connections is not numpy.array object.")
+
     def load_init_data(self, user_ids, user_profiles, user_connections):
-        """ load initial leanring data for experimentation """
-        self._now_user_ids = user_ids
-        self._now_user_profiles = user_profiles
-        self._now_user_connections = user_connections
+        """ load initial learning data for experimentation """
+        self.load_now_user_ids(user_ids)
+        self.laod_now_user_profiles(user_profiles)
+        self.load_now_user_connetections(user_connections)
 
     def load_referrence_data(self, user_connections):
         """ load the referrence user connections """
@@ -44,19 +74,26 @@ class UserRecSysExpSimulator(object):
 
     def load_recommender(self, recommender_class):
         """ load recommendation system class """
-        self._recommender = recommender_class(user_ids=self._now_user_ids,
-                                              user_profiles=self._now_user_profiles,
-                                              user_connections=self._now_user_connections)
-        self._recommender.set_recommendation_size(self._set_info["size"])
+        if issubclass(recommender_class, UserRecommenderMixin):
+            self._recommender = recommender_class(user_ids=self._now_user_ids,
+                                                  user_profiles=self._now_user_profiles,
+                                                  user_connections=self._now_user_connections)
+            self._recommender.set_recommendation_size(self._set_info["size"])
+        else:
+            raise ValueError("supplied recommender_class does not meet the requirement (UserRecommenderMixin) !")
 
-    def load_clicker(self, clicker_obj):
+    def load_clicker(self, clicker_class):
         """ load clikcer object """
-        self._clicker = clicker_obj
+        self._clicker = clicker_class()
 
-    def load_evalutor(self, evalator=None):
+    def load_evalutor(self, evaluator_class):
         """ load evalutor compare current now_user_connections vs. ref_user_connections
         """
-        self._evalutor = evalator
+        if issubclass(evaluator_class, EvaluatorMixin):
+            self._evaluator = evaluator_class()
+            self._evaluator.load_ref_user_connections(self._ref_user_connections)
+        else:
+            raise ValueError("supplied evalutor_class does not meet the requirement (sub-class of EvaluatorMixin) !")
 
     def set_recommendation_size(self, size=None):
         """ set the size of suggestion per recommendation.
@@ -85,33 +122,94 @@ class UserRecSysExpSimulator(object):
         else:
             raise EnvironmentError("setting update is forbidden after experiment started !")
 
-    def get_evalution(self):
-        """ get evaluation score """
-        return (0)
+    def _validation_information(self):
+        """ self-check if all information required for experiment is ready """
+        if self._recommender is None:
+            raise ValueError("recommender is not defined yet! user .load_recommender(cls) method to define.")
+        if self._evaluator is None:
+            raise ValueError("evaluator is not defined yet! use .load_evalutor(cls) method to define.")
+        if self._clicker is None:
+            raise ValueError("clicker is not defined yet! user .load_clicker(cls) method to define.")
+
+        if self._now_user_ids is None:
+            raise ValueError("user_ids is not defined!")
+        if self._now_user_profiles is None:
+            raise ValueError("now_user_profiles is not defined!")
+        if self._now_user_connections is None:
+            raise ValueError("now_user_connections is not defined!")
+        if self._ref_user_connections is None:
+            raise ValueError("ref_user_connections is not defined!")
+
+        pass
 
     def _update_one_step(self):
         """ experiment advance by one iteration """
         max_iter = self._set_info["max_iter"]
+
+        new_connections = []
         if self._iteration < max_iter:
             start_time = datetime.now()
 
             # operation goes here ...
-            #
+            uniq_user_ids = self._now_user_ids
+            for ii, user_id in enumerate(uniq_user_ids):
+                suggestions = self._recommender.gen_suggestion(user_id=user_id)
+                confirms = self._clicker.click(suggestions)
+                if len(confirms) > 0:
+                    pairs = [[user_id, confirm] for confirm in confirms]
+                    if len(new_connections) == 0:
+                        new_connections = pairs
+                    else:
+                        new_connections.extend(pairs)
+            # consolidate new connections
+            new_connections = array(new_connections)
+
+            # tracking experiment progress
             self._iteration += 1
+
+            if new_connections.shape[0] > 0:
+                updated_user_connections = np.vstack((self._now_user_connections, new_connections))
+                self._recommender.load_user_connections(updated_user_connections)
+            else:
+                msg = "%d iteration: no new connections are created !".format(self._iteration)
+                warnings.warn(msg)
 
             duration = datetime.now() - start_time
             total_cost = duration.total_seconds()
+
+            # collect evaluation scores
+            eval_score = self._evaluator.get_score(eval_user_connections=self._now_user_connections)
+
+            # collect information
+            exp_record = {"iteration": self._iteration,
+                          "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
+                          "time_cost_seconds": total_cost,
+                          "num_new_connections": new_connections.shape[0]}
+            exp_record.update(eval_score)
+
+            return exp_record
+
         else:
             msg = "experiment had reached the maximum iteration (%d)".format(max_iter)
             warnings.warn(msg)
 
-    def start(self, display_progress=True):
+    def run(self):
         """ start experimentation until reach maximum itartion
         """
+        # check if all information is ready
+        self._validation_information()
+
         start_time = datetime.now()
         max_iter = self._set_info["max_iter"]
-        while self._iteration < max_iter:
-            self._update_one_step()
+
+        exp_records = []
+        with tqdm(max_iter) as pbar:
+            for _ in tqdm(range(max_iter)):
+                record = self._update_one_step()
+                exp_records.append(record)
+                pbar.update()
+
         # export experiment information
         outfile = self.name + start_time.strftime("%Y%m%d_%H%M%S.csv")
         # write out test results
+        DataFrame(exp_records).to_csv(outfile, header=True, index=False)

@@ -4,15 +4,20 @@ Date: 2016/02/20
 """
 
 
-class SocialNetworkEvaluator(object):
+class EvaluatorMixin(object):
+
     def __init__(self):
-        pass
+        self._ref_user_connections = None
+        self._eval_uesr_connections = None
 
     def load_ref_user_connections(self, user_connections):
         self._ref_user_connections = user_connections
 
     def load_eval_user_connections(self, user_connections):
         self.load_eval_user_connections = user_connections
+
+
+class SocialNetworkEvaluator(EvaluatorMixin):
 
     def _get_similiarity(self, ref_user_connections, eval_user_connections):
         return 0
@@ -24,11 +29,12 @@ class SocialNetworkEvaluator(object):
 
         if ref_user_connections is None:
             ref_user_connections = self._ref_user_connections
+
         if eval_user_connections is None:
             eval_user_connections = self.load_eval_user_connections
 
-        sim_score = self._get_similiarity(ref_user_connections, eval_user_connections)
-        dissim_score = self._get_dissimilarity(ref_user_connections, eval_user_connections)
+        score_sim = self._get_similiarity(ref_user_connections, eval_user_connections)
+        score_dissim = self._get_dissimilarity(ref_user_connections, eval_user_connections)
 
-        res = {'sim_score': sim_score, 'dissim_score': dissim_score}
+        res = {'score_sim': score_sim, 'score_dissim': score_dissim}
         return res
