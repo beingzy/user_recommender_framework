@@ -32,6 +32,20 @@ class TestNNUserRecommender(unittest.TestCase):
         is_match = returned_rec == possible_rec
         self.assertTrue(is_match)
 
+    def test_add_new_connections(self):
+        self.nnrec_sys.add_new_connections([['a', 'c']])
+        returned_user_ids = self.nnrec_sys.get_connected_users(user_id='a')
+        defined_user_ids = ['b', 'c', 'd', 'e']
+        is_match = set(returned_user_ids) == set(defined_user_ids)
+        self.assertTrue(is_match)
+
+    def test_gen_suggestions_after_new_connections(self):
+        self.nnrec_sys.add_new_connections([['a', 'c']])
+        returned_rec = self.nnrec_sys.gen_suggestion('a')
+        possible_rec = []
+        is_match = returned_rec == possible_rec
+        self.assertTrue(is_match)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -4,11 +4,27 @@ Date: 2016/02/20
 """
 
 class UserRecommenderMixin(object):
+    def __init__(self, **kwargs):
+        if "user_ids" in kwargs.keys():
+            self.load_user_ids(kwargs["user_ids"])
+        else:
+            self._user_ids = None
 
-    def __init__(self):
-        self._user_ids = None
-        self._user_profiles = None
-        self._user_connections = None
+        if "user_profiles" in kwargs.keys():
+            self.load_user_profiles(kwargs["user_profiles"])
+        else:
+            self._user_profiles = None
+
+        if "user_connections" in kwargs.keys():
+            self.load_user_connections(kwargs["user_connections"])
+        else:
+            self._user_connections = None
+        # the recomemndation size (the number of suggestions per query)
+        self._size = 5
+
+    def set_recommendation_size(self, value):
+        """ set the number of suggestions per recommendation """
+        self._size = value
 
     def load_user_ids(self, value):
         """load a list of unque user ids"""
