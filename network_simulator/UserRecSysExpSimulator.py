@@ -89,7 +89,7 @@ class UserRecSysExpSimulator(object):
         """ get evaluation score """
         return (0)
 
-    def update_one_step(self):
+    def _update_one_step(self):
         """ experiment advance by one iteration """
         max_iter = self._set_info["max_iter"]
         if self._iteration < max_iter:
@@ -111,7 +111,7 @@ class UserRecSysExpSimulator(object):
         start_time = datetime.now()
         max_iter = self._set_info["max_iter"]
         while self._iteration < max_iter:
-            self.update_one_step()
+            self._update_one_step()
         # export experiment information
         outfile = self.name + start_time.strftime("%Y%m%d_%H%M%S.csv")
         # write out test results
