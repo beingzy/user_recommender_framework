@@ -5,7 +5,7 @@ Date: 2016/02/20
 import unittest
 from os import getcwd
 # load helpfer function
-from test.test_helper_func import load_test_data
+from test.helper_func import load_test_data
 # import test package
 from user_recommender.NNUserRecommender import NNUserRecommender
 
@@ -18,7 +18,8 @@ class TestNNUserRecommender(unittest.TestCase):
         user_ids, user_profiles, user_connections = load_test_data( _ROOT_DIR)
         # initiate NNRecSys
         self.nnrec_sys = NNUserRecommender(user_ids, user_profiles, user_connections)
-        self.nnrec_sys.set_suggestion_size(2)
+        self.nnrec_sys.set_recommendation_size(2)
+        self.nnrec_sys.set_max
 
     def test_list_connceted_users(self):
         returned_user_ids = self.nnrec_sys.get_connected_users(user_id='a')

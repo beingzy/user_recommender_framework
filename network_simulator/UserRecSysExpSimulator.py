@@ -16,6 +16,7 @@ from network_simulator.SocialNetworkEvaluator import EvaluatorMixin
 
 
 class UserRecSysExpSimulator(object):
+
     def __init__(self, name=None, outpath=None, is_directed=False):
 
         self.name = name
@@ -101,6 +102,7 @@ class UserRecSysExpSimulator(object):
         if issubclass(evaluator_class, EvaluatorMixin):
             self._evaluator = evaluator_class(is_directed=self._is_directed)
             self._evaluator.load_ref_user_connections(self._ref_user_connections)
+            self._evaluator.load_eval_user_connections(self._now_user_connections)
         else:
             raise ValueError("supplied evalutor_class does not meet the requirement (sub-class of EvaluatorMixin) !")
 
@@ -158,12 +160,12 @@ class UserRecSysExpSimulator(object):
         new_connections = []
         if self._iteration < max_iter:
             start_time = datetime.now()
-
             # operation goes here ...
             uniq_user_ids = self._now_user_ids
             for ii, user_id in enumerate(uniq_user_ids):
                 suggestions = self._recommender.gen_suggestion(user_id=user_id)
                 confirms = self._clicker.click(suggestions)
+                print("---- number of suggestions: " + str(len(suggestions)))
                 if len(confirms) > 0:
                     pairs = [[user_id, confirm] for confirm in confirms]
                     if len(new_connections) == 0:
@@ -178,16 +180,19 @@ class UserRecSysExpSimulator(object):
 
             if new_connections.shape[0] > 0:
                 updated_user_connections = np.vstack((self._now_user_connections, new_connections))
+                # update simulator's connection data
+                # self.load_now_user_connections(updated_user_connections)
                 self._recommender.load_user_connections(updated_user_connections)
             else:
-                msg = "%d iteration: no new connections are created !".format(self._iteration)
+                msg = str(self._iteration) + " iteration: no new connections are created !"
                 warnings.warn(msg)
 
             duration = datetime.now() - start_time
             total_cost = duration.total_seconds()
 
             # collect evaluation scores
-            eval_score = self._evaluator.get_score(eval_user_connections=self._now_user_connections)
+            self._evaluator.load_eval_user_connections(self._recommender._user_connections)
+            eval_score = self._evaluator.get_score()
 
             # collect information
             exp_record = {"iteration": self._iteration,
@@ -199,7 +204,7 @@ class UserRecSysExpSimulator(object):
             return exp_record
 
         else:
-            msg = "experiment had reached the maximum iteration (%d)".format(max_iter)
+            msg = "experiment had reached the maximum iteration (max: " + str(max_iter) + ")"
             warnings.warn(msg)
 
     def run(self):
@@ -212,8 +217,8 @@ class UserRecSysExpSimulator(object):
         max_iter = self._set_info["max_iter"]
 
         exp_records = []
-        with tqdm(max_iter) as pbar:
-            for _ in tqdm(range(max_iter)):
+        with tqdm(total=max_iter) as pbar:
+            for ii in tqdm(range(max_iter)):
                 record = self._update_one_step()
                 exp_records.append(record)
                 pbar.update()

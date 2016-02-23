@@ -5,7 +5,7 @@ Date: 2016/02/20
 import unittest
 from os import getcwd
 # load helpfer function
-from test.test_helper_func import load_test_data
+from test.helper_func import load_test_data
 # import test package
 from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
 

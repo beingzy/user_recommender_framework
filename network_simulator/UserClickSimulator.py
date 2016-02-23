@@ -24,6 +24,7 @@ class UserClickSimulator(object):
         # simulation process: generate recommendation list for user
         # user clicks list of recommended users how many times the user would click
         click_size = choice([0, 1], p=[0.2, 0.8])
+
         if click_size > 0 and len(rec_list) > 0:
             # this method is contrained by _prob_distributor's maximum
             # allowed
@@ -33,4 +34,5 @@ class UserClickSimulator(object):
             confirmed = list(confirmed)
         else:
             confirmed = []
+
         return confirmed
