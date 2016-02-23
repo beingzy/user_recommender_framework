@@ -1,5 +1,5 @@
 import unittest
-from distance_metrics.distance import CategoryWrapper
+from distance_metrics.GeneralDistanceWrapper import GeneralDistanceWrapper
 
 
 class TestCategoryWrapper(unittest.TestCase):
@@ -8,7 +8,7 @@ class TestCategoryWrapper(unittest.TestCase):
         x = [1, 2, 'a', 5.5, 'b']
         y = [4, 0, 'a', 2.1, 'c']
         self._data = {"x": x, "y": y}
-        self._catwrapper = CategoryWrapper(category_index=[2, 4])
+        self._catwrapper = GeneralDistanceWrapper(category_index=[2, 4])
 
     def test_num_elements(self):
         num_elements, _ = self._catwrapper.wrapper(self._data["x"])
@@ -39,16 +39,29 @@ class TestCategoryWrapper(unittest.TestCase):
         # to ensure weight is None in order to perform
         # unweighted euclidean distance calculation
         self._catwrapper.reset_weights()
-        dist = self._catwrapper.cal_euclidean(self._data["x"], self._data["y"])
+        dist = self._catwrapper.dist_euclidean(self._data["x"], self._data["y"])
         true_dist = 5.0556898639058154
         self.assertEqual(dist, true_dist)
 
     def test_weighted_euclidean(self):
         self._catwrapper.load_weights([1, 1, 1, 0, 0])
-        dist = self._catwrapper.cal_euclidean(self._data["x"], self._data["y"])
+        dist = self._catwrapper.dist_euclidean(self._data["x"], self._data["y"])
         true_dist = 3.6055512754639891
         self.assertEqual(dist, true_dist)
 
+    def test_convert_method_to_function_unweighted(self):
+        self._catwrapper.reset_weights()
+        dist_func = self._catwrapper.dist_euclidean
+        dist = dist_func(self._data["x"], self._data["y"])
+        true_dist = 5.0556898639058154
+        self.assertEqual(dist, true_dist)
+
+    def test_convert_method_to_function_weighted(self):
+        self._catwrapper.load_weights([1, 1, 1, 0, 0])
+        dist_func = self._catwrapper.dist_euclidean
+        dist = dist_func(self._data["x"], self._data["y"])
+        true_dist = 3.6055512754639891
+        self.assertEqual(dist, true_dist)
 
 if __name__ == '__main__':
     unittest.main()

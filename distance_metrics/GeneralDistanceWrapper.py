@@ -2,21 +2,43 @@
 Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/22
 """
-from scipy.spatial.distance import euclidean
-from numpy import array
 from numpy import sqrt
 
-class CategoryWrapper(object):
+
+class GeneralDistanceWrapper(object):
+    """ Wrapper container to support generalized distance calculation
+    for vectors involving both numeric and categorical values
+
+    Example:
+    --------
+    # caluclate unweighted euclidean dsitance
+    x, y =  [1, 2, 'a', 5.5, 'b'], [4, 0, 'a', 2.1, 'c']
+    cat_dist_wrapper = GeneralDistanceWrapper()
+    cat_dist_wrapper.update_category_index([2, 4])
+    xydist = cat_dist_wrapper.dist_euclidean(x, y)
+
+    # weighted euclidean distance
+    weights = [1, 1, 1, 0, 0]
+    cat_dist_wrapper.load_weights(weights)
+    xydist_weighted = cat_dist_wrapper.dist_euclidean(x, y)
+    """
+
     def __init__(self, category_index=None):
         self.cat_idx = category_index
         self.load_weights()
+
 
     def set_features(self, all_feat_names, cat_feat_names):
         self._all_feat_names = all_feat_names
         self._cat_feat_names = cat_feat_names
         self.cat_idx = [ii for ii, feat in enumerate(all_feat_names) if feat in cat_feat_names]
 
-    def load_weights(self, weights=None):
+    def load_weights(self, weights=None, normalize=False):
+        if not weights is None:
+            if normalize:
+                # normalize weights
+                sum_weights = sum(weights)
+                weights = [w / sum_weights for w in weights]
         self._weights = weights
 
     def reset_weights(self):
@@ -55,7 +77,7 @@ class CategoryWrapper(object):
         num_diff, cat_diff = self.get_component_difference(a, b)
         return self.recover_vector_from_components(num_diff, cat_diff)
 
-    def cal_euclidean(self, a, b):
+    def dist_euclidean(self, a, b):
         """ calculate the weighted euclidean distance
         """
         diff = self.get_difference(a, b)
