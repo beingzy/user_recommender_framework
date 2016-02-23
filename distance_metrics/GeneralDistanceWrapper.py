@@ -21,6 +21,12 @@ class GeneralDistanceWrapper(object):
     weights = [1, 1, 1, 0, 0]
     cat_dist_wrapper.load_weights(weights)
     xydist_weighted = cat_dist_wrapper.dist_euclidean(x, y)
+
+    # extract generalized distance calucaltion
+    # dist_func is immutable, weights will be automatically
+    # update in response to cat_dist_wrapper.load_weights()
+    dist_func = cat_dist_wrapper.dist_euclidean
+    xydist_weighted = dist_func(x, y)
     """
 
     def __init__(self, category_index=None):
