@@ -3,7 +3,8 @@ Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/22
 """
 from numpy import sqrt
-
+from pandas import DataFrame
+from numpy import array, ndarray
 
 class GeneralDistanceWrapper(object):
     """ Wrapper container to support generalized distance calculation
@@ -33,6 +34,27 @@ class GeneralDistanceWrapper(object):
         self.cat_idx = category_index
         self.load_weights()
 
+    def fit(self, x):
+        """ automate the detection of categoricay variables
+        """
+        category_dtypes = [str, bool, object]
+
+        if isinstance(x, list):
+            cat_idx = [ii for ii, val in enumerate(x) if type(val) in category_dtypes]
+            self.cat_idx = cat_idx
+
+        if isinstance(x, ndarray):
+            first_row = x[0, :].tolist()
+            cat_idx = [ii for ii, val in enumerate(first_row) if type(val) in category_dtypes]
+            self.cat_idx = cat_idx
+
+        if isinstance(x, DataFrame):
+            all_feat_names = x.columns.tolist()
+            first_row = x.iloc[0, :].tolist()
+            cat_idx = [ii for ii, val in enumerate(first_row) if type(val) in category_dtypes]
+            cat_feat_names = [feat_name for ii, feat_name in enumerate(all_feat_names) if ii in cat_idx]
+            self.set_features(all_feat_names=all_feat_names, cat_feat_names=cat_feat_names)
+            pass
 
     def set_features(self, all_feat_names, cat_feat_names):
         self._all_feat_names = all_feat_names
@@ -53,7 +75,7 @@ class GeneralDistanceWrapper(object):
     def update_category_index(self, category_index):
         self.cat_idx = category_index
 
-    def wrapper(self, x):
+    def decompose(self, x):
         num_elements = [val for ii, val in enumerate(x) if not ii in self.cat_idx]
         cat_elements = [val for ii, val in enumerate(x) if ii in self.cat_idx]
         return (num_elements, cat_elements)
@@ -73,8 +95,8 @@ class GeneralDistanceWrapper(object):
     def get_component_difference(self, a, b):
         if len(a) != len(b):
             raise ValueError("vector (a) is in different size of vector (b)!")
-        a_num, a_cat = self.wrapper(a)
-        b_num, b_cat = self.wrapper(b)
+        a_num, a_cat = self.decompose(a)
+        b_num, b_cat = self.decompose(b)
         num_diff = [a - b for a, b in zip(a_num, b_num)]
         cat_diff = [0 if a == b else 1 for a, b in zip(a_cat, b_cat)]
         return (num_diff, cat_diff)

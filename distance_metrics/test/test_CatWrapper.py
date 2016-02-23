@@ -1,4 +1,9 @@
+"""
+"""
 import unittest
+from numpy import array
+from pandas import DataFrame
+
 from distance_metrics.GeneralDistanceWrapper import GeneralDistanceWrapper
 
 
@@ -7,16 +12,18 @@ class TestCategoryWrapper(unittest.TestCase):
     def setUp(self):
         x = [1, 2, 'a', 5.5, 'b']
         y = [4, 0, 'a', 2.1, 'c']
-        self._data = {"x": x, "y": y}
+        xdf = DataFrame([{'gender': 'female', 'height': 5.6, 'weight': 120},
+                         {'gender': 'male', 'height': 5.8, 'weight': 180}])
+        self._data = {"x": x, "y": y, "xdf": xdf}
         self._catwrapper = GeneralDistanceWrapper(category_index=[2, 4])
 
     def test_num_elements(self):
-        num_elements, _ = self._catwrapper.wrapper(self._data["x"])
+        num_elements, _ = self._catwrapper.decompose(self._data["x"])
         true_num_elements = [1, 2, 5.5]
         self.assertEqual(num_elements, true_num_elements)
 
     def test_cat_elements(self):
-        _, cat_elements = self._catwrapper.wrapper(self._data["x"])
+        _, cat_elements = self._catwrapper.decompose(self._data["x"])
         true_cat_elements = ['a', 'b']
         self.assertEqual(cat_elements, true_cat_elements)
 
@@ -62,6 +69,34 @@ class TestCategoryWrapper(unittest.TestCase):
         dist = dist_func(self._data["x"], self._data["y"])
         true_dist = 3.6055512754639891
         self.assertEqual(dist, true_dist)
+
+    def test_fit_list(self):
+        self._catwrapper.update_category_index([])
+        self._catwrapper.fit(self._data['x'])
+        cat_idx = self._catwrapper.cat_idx
+        true_cat_idx = [2, 4]
+        self.assertEqual(cat_idx, true_cat_idx)
+
+    def test_fit_ndarray(self):
+        self._catwrapper.update_category_index([])
+        self._catwrapper.fit(self._data['xdf'].as_matrix())
+        cat_idx = self._catwrapper.cat_idx
+        is_valid_cat_idx = cat_idx == [0]
+        self.assertTrue(is_valid_cat_idx)
+
+    def test_fit_dataframe(self):
+        self._catwrapper.update_category_index([])
+        self._catwrapper.fit(self._data['xdf'])
+        all_featnames = self._catwrapper._all_feat_names
+        cat_featnames = self._catwrapper._cat_feat_names
+        cat_idx = self._catwrapper.cat_idx
+
+        is_valid_all_featnames = all_featnames == ["gender", "height", "weight"]
+        is_valid_cat_featnames = cat_featnames == ["gender"]
+        is_valid_cat_idx = cat_idx == [0]
+        is_succeed = is_valid_all_featnames and is_valid_cat_featnames and is_valid_cat_idx
+        self.assertTrue(is_succeed)
+
 
 if __name__ == '__main__':
     unittest.main()
