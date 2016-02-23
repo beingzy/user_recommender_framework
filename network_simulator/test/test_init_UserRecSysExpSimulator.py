@@ -3,12 +3,10 @@ Author: Yi Zhang
 Date: 2016/02/20
 """
 import unittest
-
-from os import getcwd
 from itertools import combinations
-from numpy import array
+from os import getcwd
 # load helpfer function
-from test.helper_func import load_test_data
+from user_recommender.test.helper_func import load_test_data
 # load depdendent class
 from user_recommender.UserRecommenderMixin import UserRecommenderMixin
 from user_recommender.NNUserRecommender import NNUserRecommender

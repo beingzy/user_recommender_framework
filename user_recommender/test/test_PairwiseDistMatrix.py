@@ -5,7 +5,7 @@ Date: 2016/02/20
 import unittest
 from os import getcwd
 # load helpfer function
-from test.helper_func import load_test_data
+from user_recommender.test.helper_func import load_test_data
 # import test package
 from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
 
@@ -45,8 +45,8 @@ class TestPairwiseDistMatrix(unittest.TestCase):
         # access distance involving user_id: a
         user_list, dist_list = self.dist_matrix.list_all_dist(user_id='a')
         b_idx = user_list.index('b')
-        cal_dist_ab = dist_list[b_idx]
-        true_dist_ab = 1.1148012717248872
+        cal_dist_ab = round(dist_list[b_idx], 3)
+        true_dist_ab = round(1.1148012717248872, 3)
         self.assertEqual( cal_dist_ab, true_dist_ab )
 
 
