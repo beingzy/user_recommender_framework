@@ -3,6 +3,7 @@ from distance_metrics.distance import CategoryWrapper
 
 
 class TestCategoryWrapper(unittest.TestCase):
+
     def setUp(self):
         x = [1, 2, 'a', 5.5, 'b']
         y = [4, 0, 'a', 2.1, 'c']
@@ -33,6 +34,20 @@ class TestCategoryWrapper(unittest.TestCase):
         res = self._catwrapper.get_difference(self._data["x"], self._data["y"])
         true = [-3, 2, 0, 3.4, 1]
         self.assertEqual(res, true)
+
+    def test_unweighted_euclidean(self):
+        # to ensure weight is None in order to perform
+        # unweighted euclidean distance calculation
+        self._catwrapper.reset_weights()
+        dist = self._catwrapper.cal_euclidean(self._data["x"], self._data["y"])
+        true_dist = 5.0556898639058154
+        self.assertEqual(dist, true_dist)
+
+    def test_weighted_euclidean(self):
+        self._catwrapper.load_weights([1, 1, 1, 0, 0])
+        dist = self._catwrapper.cal_euclidean(self._data["x"], self._data["y"])
+        true_dist = 3.6055512754639891
+        self.assertEqual(dist, true_dist)
 
 
 if __name__ == '__main__':
