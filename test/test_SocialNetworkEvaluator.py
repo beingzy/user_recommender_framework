@@ -10,14 +10,18 @@ from network_simulator.SocialNetworkEvaluator import SocialNetworkEvaluator
 class TestSocialNetworkEvaluator(unittest.TestCase):
 
     def setUp(self):
-        ref_user_connections = array([])
-        eval_user_connections = array([])
+        ref_user_connections = array([[1, 2], [2, 3]])
+        eval_user_connections = array([[3, 2], [3, 1], [3, 4]])
 
-        self._evaluator = SocialNetworkEvaluator()
+        self._evaluator = SocialNetworkEvaluator(is_directed=False)
         self._evaluator.load_ref_user_connections(ref_user_connections)
         self._evaluator.load_eval_user_connections(eval_user_connections)
 
-    def test_init_SocialNetworkEvaluator(self):
-        eval_scores = self._evaluator.get_score()
-        is_match = eval_scores["sim_score"] == 0 and eval_scores["dissim_score"] == 0
+    def test_score_sim(self):
+        scores = self._evaluator.get_score()
+        self.assertEqual(scores["score_sim"], 0.25)
+
+    def test_score_disim(self):
+        scores = self._evaluator.get_score()
+        is_match = scores["score_dissim"] is None
         self.assertTrue(is_match)

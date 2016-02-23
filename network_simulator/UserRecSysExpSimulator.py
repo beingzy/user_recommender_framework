@@ -16,19 +16,21 @@ from network_simulator.SocialNetworkEvaluator import EvaluatorMixin
 
 
 class UserRecSysExpSimulator(object):
-
-    def __init__(self, name=None, outpath=None):
+    def __init__(self, name=None, outpath=None, is_directed=False):
 
         self.name = name
         if outpath is None:
             # log file export path
-            self._outpath = join(getcwd(), name + "_exp_log")
+            self._outpath = join(getcwd(), "log")
             if not exists(self._outpath):
                 os.mkdir(self._outpath)
         else:
             self._outpath = outpath
             if not exists(self._outpath):
                 os.mkdir(self._outpath)
+
+        # set network directed status
+        self._is_directed = is_directed
 
         # experimentation state information
         self._iteration = 0
@@ -63,7 +65,7 @@ class UserRecSysExpSimulator(object):
         else:
             raise ValueError("user_profiles is not numpy.array object.")
 
-    def load_now_user_connetections(self, user_connections):
+    def load_now_user_connections(self, user_connections):
         if isinstance(user_connections, np.ndarray):
             self._now_user_connections = user_connections
         else:
@@ -73,7 +75,7 @@ class UserRecSysExpSimulator(object):
         """ load initial learning data for experimentation """
         self.load_now_user_ids(user_ids)
         self.laod_now_user_profiles(user_profiles)
-        self.load_now_user_connetections(user_connections)
+        self.load_now_user_connections(user_connections)
 
     def load_referrence_data(self, user_connections):
         """ load the referrence user connections """
@@ -93,11 +95,11 @@ class UserRecSysExpSimulator(object):
         """ load clikcer object """
         self._clicker = clicker_class()
 
-    def load_evalutor(self, evaluator_class):
+    def load_evaluator(self, evaluator_class):
         """ load evalutor compare current now_user_connections vs. ref_user_connections
         """
         if issubclass(evaluator_class, EvaluatorMixin):
-            self._evaluator = evaluator_class()
+            self._evaluator = evaluator_class(is_directed=self._is_directed)
             self._evaluator.load_ref_user_connections(self._ref_user_connections)
         else:
             raise ValueError("supplied evalutor_class does not meet the requirement (sub-class of EvaluatorMixin) !")

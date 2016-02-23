@@ -51,9 +51,9 @@ class TestUserRecSysExpSimiulator(unittest.TestCase):
 
         self._simulator.load_recommender(recommender_cls)
         self._simulator.load_clicker(dummy_clicker_cls)
-        self._simulator.load_evalutor(null_evaluator_cls)
+        self._simulator.load_evaluator(null_evaluator_cls)
 
-        self._simulator.load_referrence_data(array([]))
+        self._simulator.load_referrence_data(self._simulator._now_user_connections)
 
         self._simulator.set_max_iterations(10)
         self._simulator.run()
