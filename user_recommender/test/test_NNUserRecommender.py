@@ -9,6 +9,7 @@ from user_recommender.test.helper_func import load_test_data
 # import test package
 from user_recommender.NNUserRecommender import NNUserRecommender
 
+
 class TestNNUserRecommender(unittest.TestCase):
 
     def setUp(self):

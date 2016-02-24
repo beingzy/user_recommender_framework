@@ -165,7 +165,6 @@ class UserRecSysExpSimulator(object):
             for ii, user_id in enumerate(uniq_user_ids):
                 suggestions = self._recommender.gen_suggestion(user_id=user_id)
                 confirms = self._clicker.click(suggestions)
-                print("---- number of suggestions: " + str(len(suggestions)))
                 if len(confirms) > 0:
                     pairs = [[user_id, confirm] for confirm in confirms]
                     if len(new_connections) == 0:

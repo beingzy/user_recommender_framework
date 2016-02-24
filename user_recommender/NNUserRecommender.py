@@ -6,6 +6,7 @@ from numpy import array, vstack
 from user_recommender.UserRecommenderMixin import UserRecommenderMixin
 from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
 
+
 class NNUserRecommender(UserRecommenderMixin):
 
     def __init__(self, user_ids, user_profiles, user_connections):
