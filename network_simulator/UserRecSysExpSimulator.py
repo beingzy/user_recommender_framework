@@ -143,14 +143,10 @@ class UserRecSysExpSimulator(object):
         if self._clicker is None:
             raise ValueError("clicker is not defined yet! user .load_clicker(cls) method to define.")
 
-        # if self._now_user_ids is None:
-        #     raise ValueError("user_ids is not defined!")
-        # if self._now_user_profiles is None:
-        #     raise ValueError("now_user_profiles is not defined!")
-        # if self._now_user_connections is None:
-        #     raise ValueError("now_user_connections is not defined!")
-        # if self._ref_user_connections is None:
-        #    raise ValueError("ref_user_connections is not defined!")
+        if self._init_user_connections is None:
+            raise ValueError("now_user_connections is not defined!")
+        if self._ref_user_connections is None:
+            raise ValueError("ref_user_connections is not defined!")
         pass
 
     def _update_one_step(self):
@@ -182,10 +178,6 @@ class UserRecSysExpSimulator(object):
                 # self.load_init_user_connections(updated_user_connections)
                 self._recommender.add_new_connections(new_connections)
                 self._no_growth_counter = 0
-            # else:
-                # msg = str(self._iteration) + " iteration: no new connections are created !"
-                # self._no_growth_counter += 1
-                # warnings.warn(msg)
 
             duration = datetime.now() - start_time
             total_cost = duration.total_seconds()
