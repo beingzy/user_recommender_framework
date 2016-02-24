@@ -45,8 +45,6 @@ class UserRecSysExpSimulator(object):
         self._evaluator = None
 
         # data batch
-        self._now_user_ids = None
-        self._now_user_profiles = None
         self._now_user_connections = None
         self._ref_user_connections = None
 
@@ -57,31 +55,13 @@ class UserRecSysExpSimulator(object):
         self.set_recommendation_size()
         self.set_max_iterations()
 
-    def load_now_user_ids(self, user_ids):
-        if isinstance(user_ids, list):
-            self._now_user_ids = user_ids
-        else:
-            raise ValueError("user_ids is not list.")
-
-    def laod_now_user_profiles(self, user_profiles):
-        if isinstance(user_profiles, np.ndarray):
-            self._now_user_profiles = user_profiles
-        else:
-            raise ValueError("user_profiles is not numpy.array object.")
-
     def load_now_user_connections(self, user_connections):
         if isinstance(user_connections, np.ndarray):
             self._now_user_connections = user_connections
         else:
             raise ValueError("user_connections is not numpy.array object.")
 
-    def load_init_data(self, user_ids, user_profiles, user_connections):
-        """ load initial learning data for experimentation """
-        self.load_now_user_ids(user_ids)
-        self.laod_now_user_profiles(user_profiles)
-        self.load_now_user_connections(user_connections)
-
-    def load_referrence_data(self, user_connections):
+    def load_ref_user_connections(self, user_connections):
         """ load the referrence user connections """
         self._ref_user_connections = user_connections
 
@@ -90,6 +70,11 @@ class UserRecSysExpSimulator(object):
         if isinstance(recommender_object, UserRecommenderMixin):
             self._recommender = recommender_object
             self._recommender.set_recommendation_size(self._set_info["size"])
+            # attach data to simulator container
+            if recommender_object._user_connections is None:
+                raise ValueError("recommender's user_connections is not defined!")
+            else:
+                self.load_now_user_connections(recommender_object._user_connections)
         else:
             raise ValueError("the recommender_object is not an instance of UserRecommenderMixin or its child class!")
 
@@ -105,6 +90,11 @@ class UserRecSysExpSimulator(object):
         """
         if isinstance(evaluator_object, EvaluatorMixin):
             self._evaluator = evaluator_object
+            # attach data to simulator container
+            if evaluator_object._ref_user_connections is None:
+                raise ValueError("evaluator's ref_user_connections is not defined!")
+            else:
+                self.load_ref_user_connections(evaluator_object._ref_user_connections)
         else:
             raise ValueError("evalutor_object is not an instance of EvaluatorMixin or its child class!")
 
@@ -153,14 +143,14 @@ class UserRecSysExpSimulator(object):
         if self._clicker is None:
             raise ValueError("clicker is not defined yet! user .load_clicker(cls) method to define.")
 
-        if self._now_user_ids is None:
-            raise ValueError("user_ids is not defined!")
-        if self._now_user_profiles is None:
-            raise ValueError("now_user_profiles is not defined!")
-        if self._now_user_connections is None:
-            raise ValueError("now_user_connections is not defined!")
-        if self._ref_user_connections is None:
-            raise ValueError("ref_user_connections is not defined!")
+        # if self._now_user_ids is None:
+        #     raise ValueError("user_ids is not defined!")
+        # if self._now_user_profiles is None:
+        #     raise ValueError("now_user_profiles is not defined!")
+        # if self._now_user_connections is None:
+        #     raise ValueError("now_user_connections is not defined!")
+        # if self._ref_user_connections is None:
+        #    raise ValueError("ref_user_connections is not defined!")
         pass
 
     def _update_one_step(self):
@@ -171,7 +161,7 @@ class UserRecSysExpSimulator(object):
         if self._iteration < max_iter:
             start_time = datetime.now()
             # operation goes here ...
-            uniq_user_ids = self._now_user_ids
+            uniq_user_ids = self._recommender._user_ids
             for ii, user_id in enumerate(uniq_user_ids):
                 suggestions = self._recommender.gen_suggestion(user_id=user_id)
                 confirms = self._clicker.click(suggestions)
@@ -244,3 +234,12 @@ class UserRecSysExpSimulator(object):
         outfile = join(self._outpath, fname)
         # write out test results
         DataFrame(exp_records).to_csv(outfile, header=True, index=False)
+
+    def sys_reset(self):
+        """ reset recommender's initial conenctions information for
+        repeating experiment
+        """
+        self._recommender.load_user_connections(self._now_user_connections)
+        self._iteration = 0
+        self._no_growth_counter = 0
+

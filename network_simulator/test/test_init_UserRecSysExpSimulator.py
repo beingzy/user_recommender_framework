@@ -24,12 +24,8 @@ class TestUserRecSysExpSimiulator(unittest.TestCase):
         user_ids, user_profiles, user_connections = load_test_data(_ROOT_DIR)
         # initiate NNRecSys
         self._simulator = UserRecSysExpSimulator(name="test simulator")
-        self._simulator.load_init_data(user_ids=user_ids,
-                                       user_profiles=user_profiles,
-                                       user_connections=user_connections)
         # set the referrence user connection
         complete_connecions = [list(p) for p in combinations(user_ids, 2)]
-        self._simulator.load_referrence_data(complete_connecions)
 
         # experiment setting
         self._simulator.set_recommendation_size(5)
@@ -39,7 +35,7 @@ class TestUserRecSysExpSimiulator(unittest.TestCase):
         self._recommender = NNUserRecommender(user_ids, user_profiles, user_connections)
         self._clicker = UserClickSimulator()
         self._evaluator = SocialNetworkEvaluator(is_directed=False)
-        self._evaluator.load_ref_user_connections(user_connections)
+        self._evaluator.load_ref_user_connections(complete_connecions)
 
     def test_all_attributes(self):
         self.assertEqual(self._simulator.name, "test simulator")
