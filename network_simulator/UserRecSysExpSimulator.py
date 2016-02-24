@@ -45,7 +45,7 @@ class UserRecSysExpSimulator(object):
         self._evaluator = None
 
         # data batch
-        self._now_user_connections = None
+        self._init_user_connections = None
         self._ref_user_connections = None
 
         # experimentation information
@@ -55,9 +55,9 @@ class UserRecSysExpSimulator(object):
         self.set_recommendation_size()
         self.set_max_iterations()
 
-    def load_now_user_connections(self, user_connections):
+    def load_init_user_connections(self, user_connections):
         if isinstance(user_connections, np.ndarray):
-            self._now_user_connections = user_connections
+            self._init_user_connections = user_connections
         else:
             raise ValueError("user_connections is not numpy.array object.")
 
@@ -74,7 +74,7 @@ class UserRecSysExpSimulator(object):
             if recommender_object._user_connections is None:
                 raise ValueError("recommender's user_connections is not defined!")
             else:
-                self.load_now_user_connections(recommender_object._user_connections)
+                self.load_init_user_connections(recommender_object._user_connections)
         else:
             raise ValueError("the recommender_object is not an instance of UserRecommenderMixin or its child class!")
 
@@ -179,7 +179,7 @@ class UserRecSysExpSimulator(object):
 
             if new_connections.shape[0] > 0:
                 # update simulator's connection data
-                # self.load_now_user_connections(updated_user_connections)
+                # self.load_init_user_connections(updated_user_connections)
                 self._recommender.add_new_connections(new_connections)
                 self._no_growth_counter = 0
             # else:
@@ -239,7 +239,7 @@ class UserRecSysExpSimulator(object):
         """ reset recommender's initial conenctions information for
         repeating experiment
         """
-        self._recommender.load_user_connections(self._now_user_connections)
+        self._recommender.load_user_connections(self._init_user_connections)
         self._iteration = 0
         self._no_growth_counter = 0
 
