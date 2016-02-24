@@ -210,8 +210,8 @@ class UserRecSysExpSimulator(object):
                           "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
                           "time_cost_seconds": total_cost,
                           "num_new_connections_size": new_connections.shape[0],
-                          "now_user_connections_size": len(self._now_user_connections),
-                          "ref_user_connections_size": len(self._ref_user_connections)
+                          "now_user_connections_size": len(self._recommender._now_user_connections),
+                          "ref_user_connections_size": len(self._evaluator._ref_user_connections)
                           }
             exp_record.update(eval_score)
 
