@@ -35,28 +35,30 @@ class TestUserRecSysExpSimiulator(unittest.TestCase):
         self._simulator.set_recommendation_size(5)
         self._simulator.set_max_iterations(10)
 
+        # create components
+        self._recommender = NNUserRecommender(user_ids, user_profiles, user_connections)
+        self._clicker = UserClickSimulator()
+        self._evaluator = SocialNetworkEvaluator(is_directed=False)
+        self._evaluator.load_ref_user_connections(user_connections)
+
     def test_all_attributes(self):
         self.assertEqual(self._simulator.name, "test simulator")
 
     def test_load_and_init_UserRecommenderMixin(self):
-        self._simulator.load_recommender(UserRecommenderMixin)
+        self._simulator.load_recommender(self._recommender)
         recommender_rec_size = self._simulator._recommender._size
         self.assertEqual(recommender_rec_size, 5)
 
     def test_load_and_init_NNUserRecommender(self):
-        recommender_cls = NNUserRecommender
-        self._simulator.load_recommender(recommender_cls)
+        self._simulator.load_recommender(self._recommender)
         recommender_rec_size = self._simulator._recommender._size
         self.assertEqual(recommender_rec_size, 5)
 
     def test_run_experiment(self):
-        recommender_cls = NNUserRecommender
-        dummy_clicker_cls = UserClickSimulator
-        null_evaluator_cls = SocialNetworkEvaluator
 
-        self._simulator.load_recommender(recommender_cls)
-        self._simulator.load_clicker(dummy_clicker_cls)
-        self._simulator.load_evaluator(null_evaluator_cls)
+        self._simulator.load_recommender(self._recommender)
+        self._simulator.load_clicker(self._clicker)
+        self._simulator.load_evaluator(self._evaluator)
 
         self._simulator.set_max_iterations(10)
         self._simulator.run()

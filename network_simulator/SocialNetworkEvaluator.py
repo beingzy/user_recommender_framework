@@ -50,6 +50,7 @@ class EvaluatorMixin(object):
 
 
 class SocialNetworkEvaluator(EvaluatorMixin):
+
     def get_similiarity(self, ref_user_connections, eval_user_connections):
         # convert array to list
         if isinstance(ref_user_connections, np.ndarray):

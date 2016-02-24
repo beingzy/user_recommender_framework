@@ -19,7 +19,14 @@ def zipf_pdf(k, n, s=1):
     return num / den
 
 
-class UserClickSimulator(object):
+class UserClickSimulatorMixin(object):
+
+    def click(self, rec_list):
+        return rec_list
+
+
+class UserClickSimulator(UserClickSimulatorMixin):
+
     def click(self, rec_list):
         # simulation process: generate recommendation list for user
         # user clicks list of recommended users how many times the user would click

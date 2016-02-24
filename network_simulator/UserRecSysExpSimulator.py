@@ -13,6 +13,7 @@ from pandas import DataFrame
 from tqdm import tqdm
 from user_recommender.UserRecommenderMixin import UserRecommenderMixin
 from network_simulator.SocialNetworkEvaluator import EvaluatorMixin
+from network_simulator.UserClickSimulator import UserClickSimulatorMixin
 
 
 class UserRecSysExpSimulator(object):
@@ -84,29 +85,28 @@ class UserRecSysExpSimulator(object):
         """ load the referrence user connections """
         self._ref_user_connections = user_connections
 
-    def load_recommender(self, recommender_class):
+    def load_recommender(self, recommender_object):
         """ load recommendation system class """
-        if issubclass(recommender_class, UserRecommenderMixin):
-            self._recommender = recommender_class(user_ids=self._now_user_ids,
-                                                  user_profiles=self._now_user_profiles,
-                                                  user_connections=self._now_user_connections)
+        if isinstance(recommender_object, UserRecommenderMixin):
+            self._recommender = recommender_object
             self._recommender.set_recommendation_size(self._set_info["size"])
         else:
-            raise ValueError("supplied recommender_class does not meet the requirement (UserRecommenderMixin) !")
+            raise ValueError("the recommender_object is not an instance of UserRecommenderMixin or its child class!")
 
-    def load_clicker(self, clicker_class):
+    def load_clicker(self, clicker_object):
         """ load clikcer object """
-        self._clicker = clicker_class()
+        if isinstance(clicker_object, UserClickSimulatorMixin):
+            self._clicker = clicker_object
+        else:
+            raise ValueError("clicker_object is not an instance of UserClickSimulatorMixin or its child class!")
 
-    def load_evaluator(self, evaluator_class):
+    def load_evaluator(self, evaluator_object):
         """ load evalutor compare current now_user_connections vs. ref_user_connections
         """
-        if issubclass(evaluator_class, EvaluatorMixin):
-            self._evaluator = evaluator_class(is_directed=self._is_directed)
-            self._evaluator.load_ref_user_connections(self._ref_user_connections)
-            self._evaluator.load_eval_user_connections(self._now_user_connections)
+        if isinstance(evaluator_object, EvaluatorMixin):
+            self._evaluator = evaluator_object
         else:
-            raise ValueError("supplied evalutor_class does not meet the requirement (sub-class of EvaluatorMixin) !")
+            raise ValueError("evalutor_object is not an instance of EvaluatorMixin or its child class!")
 
     def set_recommendation_size(self, size=None):
         """ set the size of suggestion per recommendation.
@@ -161,7 +161,6 @@ class UserRecSysExpSimulator(object):
             raise ValueError("now_user_connections is not defined!")
         if self._ref_user_connections is None:
             raise ValueError("ref_user_connections is not defined!")
-
         pass
 
     def _update_one_step(self):
@@ -193,10 +192,10 @@ class UserRecSysExpSimulator(object):
                 # self.load_now_user_connections(updated_user_connections)
                 self._recommender.add_new_connections(new_connections)
                 self._no_growth_counter = 0
-            else:
-                msg = str(self._iteration) + " iteration: no new connections are created !"
-                self._no_growth_counter += 1
-                warnings.warn(msg)
+            # else:
+                # msg = str(self._iteration) + " iteration: no new connections are created !"
+                # self._no_growth_counter += 1
+                # warnings.warn(msg)
 
             duration = datetime.now() - start_time
             total_cost = duration.total_seconds()
@@ -210,7 +209,7 @@ class UserRecSysExpSimulator(object):
                           "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
                           "time_cost_seconds": total_cost,
                           "num_new_connections_size": new_connections.shape[0],
-                          "now_user_connections_size": len(self._recommender._now_user_connections),
+                          "now_user_connections_size": len(self._recommender._user_connections),
                           "ref_user_connections_size": len(self._evaluator._ref_user_connections)
                           }
             exp_record.update(eval_score)
