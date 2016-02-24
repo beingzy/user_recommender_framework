@@ -35,6 +35,8 @@ class UserRecSysExpSimulator(object):
 
         # experimentation state information
         self._iteration = 0
+        self._no_growth_counter = 0
+        self.set_no_growth_max(10) # self._no_growth_max
 
         # experiment ciritical components
         self._recommender = None
@@ -133,6 +135,15 @@ class UserRecSysExpSimulator(object):
         else:
             raise EnvironmentError("setting update is forbidden after experiment started !")
 
+    def set_no_growth_max(self, size=None):
+        """ set upper limit for no growth iteration (connections)
+            and stop experiment once the limit is reached
+        """
+        if size is None:
+            size = 10
+        self._no_growth_max = size
+
+
     def _validation_information(self):
         """ self-check if all information required for experiment is ready """
         if self._recommender is None:
@@ -178,12 +189,13 @@ class UserRecSysExpSimulator(object):
             self._iteration += 1
 
             if new_connections.shape[0] > 0:
-                updated_user_connections = np.vstack((self._now_user_connections, new_connections))
                 # update simulator's connection data
                 # self.load_now_user_connections(updated_user_connections)
-                self._recommender.load_user_connections(updated_user_connections)
+                self._recommender.add_new_connections(new_connections)
+                self._no_growth_counter = 0
             else:
                 msg = str(self._iteration) + " iteration: no new connections are created !"
+                self._no_growth_counter += 1
                 warnings.warn(msg)
 
             duration = datetime.now() - start_time
@@ -197,7 +209,10 @@ class UserRecSysExpSimulator(object):
             exp_record = {"iteration": self._iteration,
                           "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
                           "time_cost_seconds": total_cost,
-                          "num_new_connections": new_connections.shape[0]}
+                          "num_new_connections_size": new_connections.shape[0],
+                          "now_user_connections_size": len(self._now_user_connections),
+                          "ref_user_connections_size": len(self._ref_user_connections)
+                          }
             exp_record.update(eval_score)
 
             return exp_record
@@ -221,6 +236,9 @@ class UserRecSysExpSimulator(object):
                 record = self._update_one_step()
                 exp_records.append(record)
                 pbar.update()
+                if self._no_growth_counter >= self._no_growth_max:
+                    warnings.warn("experiment stops after reaching max number of no-growth iteration!")
+                    break
 
         # export experiment information
         fname = self.name + start_time.strftime("_%Y%m%d_%H%M%S.csv")
