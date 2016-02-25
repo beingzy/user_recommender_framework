@@ -1,10 +1,8 @@
 """
 """
 import unittest
-from numpy import array
 from pandas import DataFrame
-
-from distance_metrics.GeneralDistanceWrapper import GeneralDistanceWrapper
+from distance_metrics import GeneralDistanceWrapper
 
 
 class TestCategoryWrapper(unittest.TestCase):

@@ -2,12 +2,10 @@
 Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/20
 """
-import numpy as np
-from numpy import array
 from pandas import DataFrame
-
 from itertools import combinations
-from scipy.spatial.distance import euclidean
+# from scipy.spatial.distance import euclidean
+from distance_metrics import GeneralDistanceWrapper
 
 class PairwiseDistMatrix(object):
 
@@ -25,8 +23,10 @@ class PairwiseDistMatrix(object):
             nrow = user_profiles.shape[0]
             raise ValueError("user_ids (nobs: %d) does not match user_profiles (nrow: %d)".format(nobs, nrow))
 
-        # defult distance function
-        self._dist_func = euclidean
+        # distance wrapper
+        dist_wrapper = GeneralDistanceWrapper()
+        dist_wrapper.fit(user_profiles)
+        self.set_dist_func(dist_wrapper.dist_euclidean)
         # state informaiton to track update
         self._update_status = True
         # user-related information

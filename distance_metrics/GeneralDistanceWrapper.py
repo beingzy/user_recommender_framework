@@ -6,6 +6,7 @@ from numpy import sqrt
 from pandas import DataFrame
 from numpy import array, ndarray
 
+
 class GeneralDistanceWrapper(object):
     """ Wrapper container to support generalized distance calculation
     for vectors involving both numeric and categorical values

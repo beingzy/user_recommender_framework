@@ -8,12 +8,12 @@ from os import getcwd
 # load helpfer function
 from user_recommender.test.helper_func import load_test_data
 # load depdendent class
-from user_recommender.UserRecommenderMixin import UserRecommenderMixin
-from user_recommender.NNUserRecommender import NNUserRecommender
+from user_recommender import UserRecommenderMixin
+from user_recommender import NNUserRecommender
 # load test class
-from network_simulator.UserRecSysExpSimulator import UserRecSysExpSimulator
-from network_simulator.SocialNetworkEvaluator import SocialNetworkEvaluator
-from network_simulator.UserClickSimulator import UserClickSimulator
+from network_simulator import UserRecSysExpSimulator
+from network_simulator import SocialNetworkEvaluator
+from network_simulator import UserClickSimulator
 
 
 class TestUserRecSysExpSimiulator(unittest.TestCase):

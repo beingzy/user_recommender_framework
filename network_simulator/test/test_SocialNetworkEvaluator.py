@@ -4,7 +4,7 @@ Date: 2016/02/22
 """
 import unittest
 from numpy import array
-from network_simulator.SocialNetworkEvaluator import SocialNetworkEvaluator
+from network_simulator import SocialNetworkEvaluator
 
 
 class TestSocialNetworkEvaluator(unittest.TestCase):

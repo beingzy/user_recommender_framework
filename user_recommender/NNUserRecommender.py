@@ -3,9 +3,9 @@ Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/20
 """
 from numpy import array, vstack
-from user_recommender.UserRecommenderMixin import UserRecommenderMixin
+from user_recommender import UserRecommenderMixin
+from distance_metrics import GeneralDistanceWrapper
 from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
-from distance_metrics.GeneralDistanceWrapper import GeneralDistanceWrapper
 
 
 class NNUserRecommender(UserRecommenderMixin):
@@ -28,6 +28,7 @@ class NNUserRecommender(UserRecommenderMixin):
 
         # create distance matrix
         self._dist_matrix = PairwiseDistMatrix(self._user_ids, self._user_profiles)
+        # overwrite PairwiseDistMatrix's default distance function
         self._dist_matrix.set_dist_func(fit_dist_func)
         self._dist_matrix.update_distance_matrix()
         # defulat maximum number of suggsetion per recommendation query

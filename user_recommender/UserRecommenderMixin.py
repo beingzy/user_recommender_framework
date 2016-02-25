@@ -4,6 +4,7 @@ Date: 2016/02/20
 """
 
 class UserRecommenderMixin(object):
+
     def __init__(self, **kwargs):
         if "user_ids" in kwargs.keys():
             self.load_user_ids(kwargs["user_ids"])
