@@ -31,7 +31,7 @@ class GeneralDistanceWrapper(object):
     """
 
     def __init__(self, category_index=None):
-        self.cat_idx = category_index
+        self._cat_idx = category_index
         self.load_weights()
 
     def fit(self, x):
@@ -41,12 +41,12 @@ class GeneralDistanceWrapper(object):
 
         if isinstance(x, list):
             cat_idx = [ii for ii, val in enumerate(x) if type(val) in category_dtypes]
-            self.cat_idx = cat_idx
+            self._cat_idx = cat_idx
 
         if isinstance(x, ndarray):
             first_row = x[0, :].tolist()
             cat_idx = [ii for ii, val in enumerate(first_row) if type(val) in category_dtypes]
-            self.cat_idx = cat_idx
+            self._cat_idx = cat_idx
 
         if isinstance(x, DataFrame):
             all_feat_names = x.columns.tolist()
@@ -59,7 +59,7 @@ class GeneralDistanceWrapper(object):
     def set_features(self, all_feat_names, cat_feat_names):
         self._all_feat_names = all_feat_names
         self._cat_feat_names = cat_feat_names
-        self.cat_idx = [ii for ii, feat in enumerate(all_feat_names) if feat in cat_feat_names]
+        self._cat_idx = [ii for ii, feat in enumerate(all_feat_names) if feat in cat_feat_names]
 
     def load_weights(self, weights=None, normalize=False):
         if not weights is None:
@@ -73,17 +73,20 @@ class GeneralDistanceWrapper(object):
         self._weights = None
 
     def update_category_index(self, category_index):
-        self.cat_idx = category_index
+        self._cat_idx = category_index
+
+    def get_category_index(self, cateogry_index):
+        return self._cat_idx
 
     def decompose(self, x):
-        num_elements = [val for ii, val in enumerate(x) if not ii in self.cat_idx]
-        cat_elements = [val for ii, val in enumerate(x) if ii in self.cat_idx]
+        num_elements = [val for ii, val in enumerate(x) if not ii in self._cat_idx]
+        cat_elements = [val for ii, val in enumerate(x) if ii in self._cat_idx]
         return (num_elements, cat_elements)
 
     def recover_vector_from_components(self, num_component, cat_component):
         # output conatainer
         tot_elements = len(num_component) + len(cat_component)
-        cat_idx = self.cat_idx
+        cat_idx = self._cat_idx
         num_idx = [ii for ii in range(tot_elements) if not ii in cat_idx]
         vector = [None] * tot_elements
         for idx, val in zip(cat_idx, cat_component):

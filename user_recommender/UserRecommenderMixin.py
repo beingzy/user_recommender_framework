@@ -41,5 +41,5 @@ class UserRecommenderMixin(object):
     def update(self):
         pass
 
-    def gen_suggestion(self, user_id, size=5):
+    def gen_suggestion(self, user_id):
         pass

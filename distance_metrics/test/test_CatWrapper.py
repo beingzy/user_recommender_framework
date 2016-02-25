@@ -73,14 +73,14 @@ class TestCategoryWrapper(unittest.TestCase):
     def test_fit_list(self):
         self._catwrapper.update_category_index([])
         self._catwrapper.fit(self._data['x'])
-        cat_idx = self._catwrapper.cat_idx
+        cat_idx = self._catwrapper._cat_idx
         true_cat_idx = [2, 4]
         self.assertEqual(cat_idx, true_cat_idx)
 
     def test_fit_ndarray(self):
         self._catwrapper.update_category_index([])
         self._catwrapper.fit(self._data['xdf'].as_matrix())
-        cat_idx = self._catwrapper.cat_idx
+        cat_idx = self._catwrapper._cat_idx
         is_valid_cat_idx = cat_idx == [0]
         self.assertTrue(is_valid_cat_idx)
 
@@ -89,7 +89,7 @@ class TestCategoryWrapper(unittest.TestCase):
         self._catwrapper.fit(self._data['xdf'])
         all_featnames = self._catwrapper._all_feat_names
         cat_featnames = self._catwrapper._cat_feat_names
-        cat_idx = self._catwrapper.cat_idx
+        cat_idx = self._catwrapper._cat_idx
 
         is_valid_all_featnames = all_featnames == ["gender", "height", "weight"]
         is_valid_cat_featnames = cat_featnames == ["gender"]

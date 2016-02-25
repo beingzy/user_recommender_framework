@@ -36,6 +36,10 @@ class PairwiseDistMatrix(object):
         self._dist_user_pairs = []
         self._dist_matrix = []
 
+    def set_dist_func(self, dist_func):
+        """ redefine the distance metric function """
+        self._dist_func = dist_func
+
     def update_distance_matrix(self):
         """ update the distance matrix """
         # is_update = function() change
