@@ -5,6 +5,7 @@ Date: 2016/02/20
 from numpy import array, vstack
 from user_recommender.UserRecommenderMixin import UserRecommenderMixin
 from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
+from distance_metrics.GeneralDistanceWrapper import GeneralDistanceWrapper
 
 
 class NNUserRecommender(UserRecommenderMixin):
@@ -15,24 +16,44 @@ class NNUserRecommender(UserRecommenderMixin):
         self.load_user_ids(user_ids)
         self.load_user_profiles(user_profiles)
         self.load_user_connections(user_connections)
+
+        # load generalized distance wrapper to deal with cateogrical features
+        self._general_dist_wrapper = GeneralDistanceWrapper()
+        # learn which features of user_profile are categorical
+        self._general_dist_wrapper.fit(self._user_profiles)
+        # initiate default weights for distance caluclation
+        self._general_dist_wrapper.load_weights(weights=None)
+        # extract function method for PairwiseDistMatrix
+        fit_dist_func = self._general_dist_wrapper.dist_euclidean
+
         # create distance matrix
         self._dist_matrix = PairwiseDistMatrix(self._user_ids, self._user_profiles)
+        self._dist_matrix.set_dist_func(fit_dist_func)
         self._dist_matrix.update_distance_matrix()
         # defulat maximum number of suggsetion per recommendation query
         self._size = 5
+
+    def _update_dist_func(self):
+        self._general_dist_wrapper.fit(self._user_profiles)
+        fit_dist_func = self._general_dist_wrapper.dist_euclidean
+        self._dist_matrix.set_dist_func(fit_dist_func)
 
     def update(self, **kwargs):
         """ update social network """
         if "user_ids" in kwargs.keys():
             self.load_user_ids(kwargs["user_ids"])
+
         if "user_profiles" in kwargs.keys():
             self.load_user_profiles(kwargs["user_profiles"])
+            self._update_dist_func()
+
         if "user_connections" in kwargs.keys():
             self.load_user_connections(kwargs["user_connections"])
 
         # update distance matrix
         if "user_ids" in kwargs.keys() or "user_profiles" in kwargs.keys():
             self._dist_matrix = PairwiseDistMatrix(self._user_ids, self._user_profiles)
+            # self._dist_matrix.set_dist_func()
             self._dist_matrix.update_distance_matrix()
 
     def add_new_connections(self, new_user_connections):
