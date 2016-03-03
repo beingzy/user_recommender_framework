@@ -13,9 +13,7 @@ def _similiarity_score(ref_user_connections, eval_user_connections):
 
 
 def _normalize_connections(connections):
-    """ convert numpy.array of connections to a list of set
-    items to represent undirected connections.
-    """
+    """ convert numpy.array of connections to a list of set items to represent undirected connections."""
     connections = [set(pair) for pair in connections]
     uniq_connections = []
     for item in connections:
@@ -57,6 +55,13 @@ class EvaluatorMixin(object):
 
 
 class SocialNetworkEvaluator(EvaluatorMixin):
+    """ social network comparison tool
+
+    Parameters:
+    ----------
+    is_directed: boolean, defaulted = False
+        define how to treat network as directed or  undirected
+    """
 
     def get_similiarity(self, ref_user_connections, eval_user_connections):
         # convert array to list
