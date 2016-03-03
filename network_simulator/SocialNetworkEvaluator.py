@@ -5,7 +5,14 @@ Date: 2016/02/20
 import numpy as np
 
 
-def normalize_connections(connections):
+def _similiarity_score(ref_user_connections, eval_user_connections):
+    """ caulcalate the fraction of common items over union items of two user_connections """
+    tot_common = sum([1 for item in eval_user_connections if item in ref_user_connections])
+    union_size = len(ref_user_connections) + len(eval_user_connections) - tot_common
+    return tot_common / union_size
+
+
+def _normalize_connections(connections):
     """ convert numpy.array of connections to a list of set
     items to represent undirected connections.
     """
@@ -31,7 +38,7 @@ class EvaluatorMixin(object):
             # make copy of immutable list
             user_connections = user_connections[:]
         if not self._is_directed:
-            user_connections = normalize_connections(user_connections)
+            user_connections = _normalize_connections(user_connections)
         self._ref_user_connections = user_connections
 
     def load_eval_user_connections(self, user_connections):
@@ -42,7 +49,7 @@ class EvaluatorMixin(object):
             # make copy of immutable list
             user_connections = user_connections[:]
         if not self._is_directed:
-            user_connections = normalize_connections(user_connections)
+            user_connections = _normalize_connections(user_connections)
         self._eval_user_connections = user_connections
 
     def get_directed_status(self):
@@ -58,9 +65,7 @@ class SocialNetworkEvaluator(EvaluatorMixin):
         if isinstance(eval_user_connections, np.ndarray):
             eval_user_connections = eval_user_connections.tolist()
 
-        tot_common = sum([1 for item in eval_user_connections if item in ref_user_connections])
-        union_size = len(ref_user_connections) + len(eval_user_connections) - tot_common
-        return tot_common / union_size
+        return _similiarity_score(ref_user_connections, eval_user_connections)
 
     def get_dissimilarity(self, ref_user_connections, eval_user_connections):
         return None
