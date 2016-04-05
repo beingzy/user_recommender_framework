@@ -34,23 +34,27 @@ from user_recommender_framework.user_recommender import *
 nnu_recommender = NNUserRecommender(user_ids, user_profiles, init_user_connections)
 
 evaluator = SocialNetworkEvaluator()
-evaluator.load_ref_user_conncetions(user_connections)
+evaluator.load_ref_user_connections(user_connections)
 
 # user behavior simulator 
 user_clicker = UserClickSimulator()
 
 # setup experiment
 experimentor = UserRecSysExpSimulator(name="MyExperiment")
-experimentor.load_recommender(nuu_recommender)
+experimentor.load_recommender(nnu_recommender)
 experimentor.load_evaluator(evaluator)
 experimentor.load_clicker(user_clicker)
 
 # set the number of suggestions for each user at each iteration
 experimentor.set_recommendation_size(5)
-# start experiemnt, expriement results will be exported automatically
+# start experiment, experiment results will be exported automatically
 experimentor.run()
 
 # to retore experiment to status before .run()
 experimentor.reset()
 ```
+
+When the experiment is running, `.run()` method will report the progress of experimenting in console.
+
+![experiment run screenshot](./src/images/experiment_run_pbar.PNG)
 
