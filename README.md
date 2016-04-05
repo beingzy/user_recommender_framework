@@ -17,7 +17,7 @@ social connections, requiring more computational resource.
  - NNUserRecommender 
  - PairwiseDistMatrix
 
-## How to use experiemntation framework to evaluate recommendation system
+## How to use experimentation framework to evaluate recommendation system
 1. Conduct an experiment of applying Nearest Neigbour-based recommendation system:
 ```python
 from user_recommender_framework.network_simulator import *
