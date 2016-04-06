@@ -39,6 +39,9 @@ class NNUserRecommender(UserRecommenderMixin):
         fit_dist_func = self._general_dist_wrapper.dist_euclidean
         self._dist_matrix.set_dist_func(fit_dist_func)
 
+    def set_recommendation_size(self, size=5):
+        self._size = size
+
     def update(self, **kwargs):
         """ update social network """
         if "user_ids" in kwargs.keys():
