@@ -45,10 +45,10 @@ class PairwiseDistMatrix(object):
         if target_user_ids is None:
             self._all_pairs = combinations(user_ids, 2)
         else:
-            other_user_ids = [uid for uid in user_ids if not uid in target_user_ids]
             for a_uid in target_user_ids:
-                for b_uid in other_user_ids:
-                    self._all_pairs.append((a_uid, b_uid))
+                for b_uid in user_ids:
+                    if a_uid != b_uid:
+                        self._all_pairs.append((a_uid, b_uid))
 
     def set_dist_func(self, dist_func):
         """ redefine the distance metric function """
