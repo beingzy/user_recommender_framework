@@ -53,6 +53,7 @@ class NNUserRecommender(UserRecommenderMixin):
 
         # update distance matrix
         if "user_ids" in kwargs.keys() or "user_profiles" in kwargs.keys():
+            # !!!! --- SHOULD REMOVE THIS LINE DUE TO UN_MATCHED DISTANCE WEIGHTS
             self._dist_matrix = PairwiseDistMatrix(self._user_ids, self._user_profiles)
             # self._dist_matrix.set_dist_func()
             self._dist_matrix.update_distance_matrix()
