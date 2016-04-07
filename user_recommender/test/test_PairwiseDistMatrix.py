@@ -21,6 +21,9 @@ class TestPairwiseDistMatrix(unittest.TestCase):
         self.dist_matrix = PairwiseDistMatrix(user_ids, user_profiles)
         # calculate distance metrix
         self.dist_matrix.update_distance_matrix()
+        # attach data to instance
+        self._user_ids = user_ids
+        self._user_profiles = user_profiles
 
     def test_attributes(self):
         """ test if PairwiseDistMatrix has all the attributes """
@@ -58,6 +61,14 @@ class TestPairwiseDistMatrix(unittest.TestCase):
         cal_dist = round(dist_list[idx], 3)
         true_dist = round(1.5136858414837358, 3)
         self.assertEqual( cal_dist, true_dist )
+
+    def test_with_target_user_ids(self):
+        target_user_ids = ['a', 'b']
+        new_dist_matrix = PairwiseDistMatrix(self._user_ids, self._user_profiles,
+                                             target_user_ids)
+        new_dist_matrix.update_distance_matrix()
+        all_dists = new_dist_matrix._dist_matrix
+        self.assertEqual(len(all_dists), 8)
 
 
 if __name__ == "__main__":
