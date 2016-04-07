@@ -177,6 +177,7 @@ class UserRecSysExpSimulator(object):
                 # update simulator's connection data
                 # self.load_init_user_connections(updated_user_connections)
                 self._recommender.add_new_connections(new_connections)
+                self._recommender.update()
                 self._no_growth_counter = 0
 
             duration = datetime.now() - start_time
