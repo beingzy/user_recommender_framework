@@ -10,6 +10,7 @@ from distance_metrics import GeneralDistanceWrapper
 from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
 from groupwise_distance_learning.groupwise_distance_learner import GroupwiseDistLearner
 
+
 def _consolidate_learned_info(gwd_learner, buffer_min_size):
     """ process buffer group's users either to stay independent
         or merge into largest group.
