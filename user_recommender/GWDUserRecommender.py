@@ -11,7 +11,7 @@ from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
 from groupwise_distance_learning.groupwise_distance_learner import GroupwiseDistLearner
 
 
-def _consolidate_learned_info(gwd_learner, buffer_min_size):
+def _consolidate_learned_info(gwd_learner, buffer_min_size=None):
     """ process buffer group's users either to stay independent
         or merge into largest group.
         It returns a consolidated set of fit_weights and fit_group
@@ -25,6 +25,9 @@ def _consolidate_learned_info(gwd_learner, buffer_min_size):
         msg = "".join(["invalid input, gwd_learner must be",
                        "an instance of GroupwiseDistLearner!"])
         raise ValueError(msg)
+
+    if buffer_min_size is None:
+        buffer_min_size = 20
 
     # extract learned information
     fit_weights = gwd_learner.get_groupwise_weights()
