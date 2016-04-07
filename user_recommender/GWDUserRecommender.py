@@ -11,7 +11,7 @@ from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
 from groupwise_distance_learning.groupwise_distance_learner import GroupwiseDistLearner
 
 
-def _consolidate_learned_info(gwd_learner, buffer_min_size):
+def _consolidate_learned_info(gwd_learner, buffer_min_size=None):
     """ process buffer group's users either to stay independent
         or merge into largest group.
         It returns a consolidated set of fit_weights and fit_group
@@ -25,6 +25,9 @@ def _consolidate_learned_info(gwd_learner, buffer_min_size):
         msg = "".join(["invalid input, gwd_learner must be",
                        "an instance of GroupwiseDistLearner!"])
         raise ValueError(msg)
+
+    if buffer_min_size is None:
+        buffer_min_size = 20
 
     # extract learned information
     fit_weights = gwd_learner.get_groupwise_weights()
@@ -101,7 +104,8 @@ class GWDUserRecommender(UserRecommenderMixin):
         self.gwd_learner = GroupwiseDistLearner(**kwargs)
         # initiate learning
         self._triger_groupwise_learning()
-
+        # marker for information updated
+        self._is_updated = False
 
     def _return_user_group(self, user_id):
         """ return group key of a given user
@@ -152,25 +156,25 @@ class GWDUserRecommender(UserRecommenderMixin):
     def update(self, **kwargs):
         """ update social network
         """
-        is_updated = False
         if "user_ids" in kwargs.keys():
             self.load_user_ids(kwargs["user_ids"])
-            is_updated = True
+            self._is_updated = True
 
         if "user_profiles" in kwargs.keys():
             self.load_user_profiles(kwargs["user_profiles"])
-            is_updated = True
+            self._is_updated = True
 
         if "user_connections" in kwargs.keys():
             self.load_user_connections(kwargs["user_connections"])
-            is_updated = True
+            self._is_updated = True
 
         # MUST UPDATE EITHER BOTH OF user_ids, user_profiles
         # OR NONE OF THEM !!!
         # ADD VALIDATION FUNCTION IS NEEDED
-        if is_updated:
+        if self._is_updated:
             # either
             self._triger_groupwise_learning()
+            self._is_updated = False
 
     def add_new_connections(self, new_user_connections):
         if isinstance(new_user_connections, list):
@@ -179,6 +183,7 @@ class GWDUserRecommender(UserRecommenderMixin):
             else:
                 raise ValueError("illegal new_user_connections data is provided !")
         self._user_connections = vstack((self._user_connections, new_user_connections))
+        self._is_updated = True
 
     def get_connected_users(self, user_id):
         """ return a list of user who are connceted with the target user"""

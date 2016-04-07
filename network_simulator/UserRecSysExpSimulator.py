@@ -177,6 +177,7 @@ class UserRecSysExpSimulator(object):
                 # update simulator's connection data
                 # self.load_init_user_connections(updated_user_connections)
                 self._recommender.add_new_connections(new_connections)
+                self._recommender.update()
                 self._no_growth_counter = 0
 
             duration = datetime.now() - start_time
@@ -214,11 +215,16 @@ class UserRecSysExpSimulator(object):
         exp_records = []
         with tqdm(total=max_iter) as pbar:
             for ii in tqdm(range(max_iter)):
-                record = self._update_one_step()
-                exp_records.append(record)
-                pbar.update()
-                if self._no_growth_counter >= self._no_growth_max:
-                    warnings.warn("experiment stops after reaching max number of no-growth iteration!")
+                try:
+                    record = self._update_one_step()
+                    exp_records.append(record)
+                    pbar.update()
+                    if self._no_growth_counter >= self._no_growth_max:
+                        warnings.warn("experiment stops after reaching max number of no-growth iteration!")
+                        break
+                except:
+                    msg = "".join(["Error Happend, experiment hault earlier than design!"])
+                    warnings.warn(msg)
                     break
 
         # export experiment information
