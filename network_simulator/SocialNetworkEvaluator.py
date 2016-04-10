@@ -6,8 +6,82 @@ import numpy as np
 import networkx as nx
 from networkx import Graph, DiGraph
 
+
+class EvaluatorMixin(object):
+
+    def __init__(self, is_directed=False):
+        self._ref_user_connections = None
+        self._eval_uesr_connections = None
+        self._is_directed = is_directed
+
+    def load_ref_user_connections(self, user_connections):
+        if isinstance(user_connections, np.ndarray):
+            user_connections = user_connections.tolist()
+        if isinstance(user_connections, list):
+            # make copy of immutable list
+            user_connections = user_connections[:]
+        if not self._is_directed:
+            user_connections = _normalize_connections(user_connections, self._is_directed)
+        self._ref_user_connections = user_connections
+
+    def load_eval_user_connections(self, user_connections):
+        """"""
+        if isinstance(user_connections, np.ndarray):
+            user_connections = user_connections.tolist()
+        if isinstance(user_connections, list):
+            # make copy of immutable list
+            user_connections = user_connections[:]
+        if not self._is_directed:
+            user_connections = _normalize_connections(user_connections, self._is_directed)
+        self._eval_user_connections = user_connections
+
+    def get_directed_status(self):
+        return self._is_directed
+
+
+class SocialNetworkEvaluator(EvaluatorMixin):
+    """ social network comparison tool
+
+    Parameters:
+    ----------
+    is_directed: boolean, defaulted = False
+        define how to treat network as directed or  undirected
+    """
+
+    def get_similiarity(self, ref_user_connections, eval_user_connections, is_directed=False):
+        # convert array to list
+        if isinstance(ref_user_connections, np.ndarray):
+            ref_user_connections = ref_user_connections.tolist()
+
+        if isinstance(eval_user_connections, np.ndarray):
+            eval_user_connections = eval_user_connections.tolist()
+
+        cdr_score = common_edge_ratio(ref_user_connections, eval_user_connections, is_directed)
+        eigenvec_score = eigenvector_similarity(ref_user_connections, eval_user_connections, is_directed)
+        return cdr_score, eigenvec_score
+
+    def get_dissimilarity(self, ref_user_connections, eval_user_connections):
+        return None
+
+    def get_score(self, ref_user_connections=None, eval_user_connections=None):
+
+        if ref_user_connections is None:
+            ref_user_connections = self._ref_user_connections
+
+        if eval_user_connections is None:
+            eval_user_connections = self._eval_user_connections
+
+        cdr_score, eigenvec_score = self.get_similiarity(ref_user_connections, eval_user_connections)
+        score_dissim = self.get_dissimilarity(ref_user_connections, eval_user_connections)
+
+        res = {'common_edge_ratio': cdr_score,
+               'eigenvector_similarity': eigenvec_score,
+               'score_dissim': score_dissim}
+        return res
+
+
 def common_edge_ratio(ref_user_connections, eval_user_connections, is_directed=False):
-    """ caulcalate the fraction of common items over union items of two user_connections
+    """ caulcalate the fraction of common edges fraction out of union of two graphs
 
     Parameters:
     ==========
@@ -82,76 +156,3 @@ def _normalize_connections(connections, is_directed=False):
             uniq_connections.append(item)
 
     return uniq_connections
-
-
-class EvaluatorMixin(object):
-
-    def __init__(self, is_directed=False):
-        self._ref_user_connections = None
-        self._eval_uesr_connections = None
-        self._is_directed = is_directed
-
-    def load_ref_user_connections(self, user_connections):
-        if isinstance(user_connections, np.ndarray):
-            user_connections = user_connections.tolist()
-        if isinstance(user_connections, list):
-            # make copy of immutable list
-            user_connections = user_connections[:]
-        if not self._is_directed:
-            user_connections = _normalize_connections(user_connections, self._is_directed)
-        self._ref_user_connections = user_connections
-
-    def load_eval_user_connections(self, user_connections):
-        """"""
-        if isinstance(user_connections, np.ndarray):
-            user_connections = user_connections.tolist()
-        if isinstance(user_connections, list):
-            # make copy of immutable list
-            user_connections = user_connections[:]
-        if not self._is_directed:
-            user_connections = _normalize_connections(user_connections, self._is_directed)
-        self._eval_user_connections = user_connections
-
-    def get_directed_status(self):
-        return self._is_directed
-
-
-class SocialNetworkEvaluator(EvaluatorMixin):
-    """ social network comparison tool
-
-    Parameters:
-    ----------
-    is_directed: boolean, defaulted = False
-        define how to treat network as directed or  undirected
-    """
-
-    def get_similiarity(self, ref_user_connections, eval_user_connections, is_directed=False):
-        # convert array to list
-        if isinstance(ref_user_connections, np.ndarray):
-            ref_user_connections = ref_user_connections.tolist()
-
-        if isinstance(eval_user_connections, np.ndarray):
-            eval_user_connections = eval_user_connections.tolist()
-
-        cdr_score = common_edge_ratio(ref_user_connections, eval_user_connections, is_directed)
-        eigenvec_score = eigenvector_similarity(ref_user_connections, eval_user_connections, is_directed)
-        return cdr_score, eigenvec_score
-
-    def get_dissimilarity(self, ref_user_connections, eval_user_connections):
-        return None
-
-    def get_score(self, ref_user_connections=None, eval_user_connections=None):
-
-        if ref_user_connections is None:
-            ref_user_connections = self._ref_user_connections
-
-        if eval_user_connections is None:
-            eval_user_connections = self._eval_user_connections
-
-        cdr_score, eigenvec_score = self.get_similiarity(ref_user_connections, eval_user_connections)
-        score_dissim = self.get_dissimilarity(ref_user_connections, eval_user_connections)
-
-        res = {'common_edge_ratio': cdr_score,
-               'eigenvector_similarity': eigenvec_score,
-               'score_dissim': score_dissim}
-        return res
