@@ -20,14 +20,21 @@ class TestSocialNetworkEvaluator(unittest.TestCase):
 
     def test_score_sim(self):
         scores = self._evaluator.get_score()
-        self.assertEqual(scores["score_sim"], 0.25)
+
+        cer_score = scores["common_edge_ratio"]
+        eig_score = scores["eigenvector_similarity"]
+
+        cond1 = cer_score == 0.25
+        cond2 = eig_score == 0.20
+        test_result = cond1 and cond2
+        self.assertTrue(test_result)
 
     def test_score_sim_same(self):
         """ test same ref_user_connections and eval_user_conenctions """
         eval_user_connections = array([[1, 2], [2, 3]])
         self._evaluator.load_eval_user_connections(eval_user_connections)
         scores = self._evaluator.get_score()
-        self.assertEqual(scores["score_sim"], 1)
+        self.assertEqual(scores["common_edge_ratio"], 1)
 
     def test_directed_score_sim(self):
         ref_user_connections = array([[1, 2], [2, 3], [3, 2]])
@@ -40,7 +47,7 @@ class TestSocialNetworkEvaluator(unittest.TestCase):
         scores = directed_evaluator.get_score()
         # duration = datetime.now() - start_time
         # print( "total seconds: %f" % duration.total_seconds() )
-        self.assertEqual(scores["score_sim"], 0.2)
+        self.assertEqual(scores["common_edge_ratio"], 0.2)
 
     def test_score_disim(self):
         scores = self._evaluator.get_score()
