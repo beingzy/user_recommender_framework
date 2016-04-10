@@ -12,13 +12,16 @@ def _similiarity_score(ref_user_connections, eval_user_connections):
     return tot_common / union_size
 
 
-def _normalize_connections(connections):
+def _normalize_connections(connections, is_directed=False):
     """ convert numpy.array of connections to a list of set items to represent undirected connections."""
-    connections = [set(pair) for pair in connections]
+    if not is_directed:
+         connections = [set(pair) for pair in connections]
+
     uniq_connections = []
     for item in connections:
         if not item in uniq_connections:
             uniq_connections.append(item)
+
     return uniq_connections
 
 
@@ -36,7 +39,7 @@ class EvaluatorMixin(object):
             # make copy of immutable list
             user_connections = user_connections[:]
         if not self._is_directed:
-            user_connections = _normalize_connections(user_connections)
+            user_connections = _normalize_connections(user_connections, self._is_directed)
         self._ref_user_connections = user_connections
 
     def load_eval_user_connections(self, user_connections):
@@ -47,7 +50,7 @@ class EvaluatorMixin(object):
             # make copy of immutable list
             user_connections = user_connections[:]
         if not self._is_directed:
-            user_connections = _normalize_connections(user_connections)
+            user_connections = _normalize_connections(user_connections, self._is_directed)
         self._eval_user_connections = user_connections
 
     def get_directed_status(self):
