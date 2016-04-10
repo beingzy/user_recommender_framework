@@ -57,7 +57,7 @@ def _consolidate_learned_info(gwd_learner, buffer_min_size=None):
 
 class GWDUserRecommender(UserRecommenderMixin):
 
-    def __init__(self, user_ids, user_profiles, user_connections, **kwargs):
+    def __init__(self, user_ids, user_profiles, user_connections, only_init_learn=False, **kwargs):
         """ instance initilization function
 
         Parameters:
@@ -66,6 +66,9 @@ class GWDUserRecommender(UserRecommenderMixin):
         * user_profiles: <matrix-like> a numpy.array of user profile
         * target_uer_ids: <list> a list of user whose distance in relation to other users
             will be  calculated only.
+        * only_init_learn: boolean
+            True: GroupwiseDistLearner only learn user_group and groupwise distance at one time
+            False: GroupwiseDistLearner will learn every time
         """
 
         super().__init__()
@@ -84,6 +87,10 @@ class GWDUserRecommender(UserRecommenderMixin):
             self._buffer_min_size = kwargs["buffer_min_size"]
         except:
             self._buffer_min_size = None # load function default value
+
+        # store attribute
+        self._only_init_learn = only_init_learn
+        self._iter_counter = 0
 
         # load user-related information
         self.load_user_ids(user_ids)
@@ -115,12 +122,25 @@ class GWDUserRecommender(UserRecommenderMixin):
                 return gid
 
     def _triger_groupwise_learning(self):
-        self.gwd_learner.fit(self._user_ids,
-                             self._user_profiles,
-                             self._user_connections)
+        if self._only_init_learn:
+            
+            if self._iter_counter == 0:
+                self.gwd_learner.fit(self._user_ids,
+                                     self._user_profiles,
+                                     self._user_connections)
 
-        fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                                                            self._buffer_min_size)
+                fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                    self._buffer_min_size)
+            else:
+                fit_weights, fit_groups = self._fit_weights, self._fit_groups
+
+        else:
+            self.gwd_learner.fit(self._user_ids,
+                                 self._user_profiles,
+                                 self._user_connections)
+
+            fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                self._buffer_min_size)
 
         # process update pairwise distance matrix
         group_ids = fit_groups.keys()
@@ -149,6 +169,9 @@ class GWDUserRecommender(UserRecommenderMixin):
         self._fit_weights = fit_weights
         self._fit_groups = fit_groups
         self._all_group_ids = list(fit_groups.keys())
+
+        # increase interation counter
+        self._iter_counter += 1
 
     def set_recommendation_size(self, size=5):
         self._size = size
