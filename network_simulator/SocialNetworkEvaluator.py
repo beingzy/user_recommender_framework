@@ -91,8 +91,12 @@ def common_edge_ratio(ref_user_connections, eval_user_connections, is_directed=F
         False (default): edges forms an undirected graph
         True: edges forms a directed graph
     """
+    ref_user_connections = _normalize_connections(ref_user_connections, is_directed)
+    eval_user_connections = _normalize_connections(eval_user_connections, is_directed)
+
     tot_common = sum([1 for item in eval_user_connections if item in ref_user_connections])
     union_size = len(ref_user_connections) + len(eval_user_connections) - tot_common
+
     return tot_common / union_size
 
 
