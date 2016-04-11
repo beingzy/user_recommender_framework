@@ -123,7 +123,7 @@ class GWDUserRecommender(UserRecommenderMixin):
 
     def _triger_groupwise_learning(self):
         if self._only_init_learn:
-            
+
             if self._iter_counter == 0:
                 self.gwd_learner.fit(self._user_ids,
                                      self._user_profiles,
