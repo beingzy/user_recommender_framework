@@ -197,6 +197,9 @@ class UserRecSysExpSimulator(object):
                           }
             exp_record.update(eval_score)
 
+            # mark advacned of experiment
+            self._recommender.update_iteration()
+
             return exp_record
 
         else:
@@ -238,6 +241,7 @@ class UserRecSysExpSimulator(object):
         repeating experiment
         """
         self._recommender.load_user_connections(self._init_user_connections)
+        self._recommender._iter_counter = 0
         self._iteration = 0
         self._no_growth_counter = 0
 
