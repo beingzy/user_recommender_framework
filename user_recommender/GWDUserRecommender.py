@@ -107,18 +107,18 @@ class GWDUserRecommender(UserRecommenderMixin):
         self._fit_groups = {}
         self._all_group_ids = []
 
+        # define update frequency
+        self._update_iter_period = update_iter_period
+        if not update_iter_period is None:
+            # overwrite init_ if update_iter_period had been set
+            self._only_init_learn = False
+
         # equip with GWD leanner
         self.gwd_learner = GroupwiseDistLearner(**kwargs)
         # initiate learning
         self._triger_groupwise_learning()
         # marker for information updated
         self._is_updated = False
-
-        self._update_iter_period = update_iter_period
-
-        if not update_iter_period is None:
-            # overwrite init_ if update_iter_period had been set
-            self._only_init_learn = False
 
     def _return_user_group(self, user_id):
         """ return group key of a given user
