@@ -23,6 +23,10 @@ class UserRecommenderMixin(object):
         # the recomemndation size (the number of suggestions per query)
         self._size = 5
 
+        # properties will be accessed by experiment simulator
+        # to record the advancement of experiment
+        self._iter_counter = 0
+
     def set_recommendation_size(self, value):
         """ set the number of suggestions per recommendation """
         self._size = value
@@ -38,6 +42,9 @@ class UserRecommenderMixin(object):
     def load_user_connections(self, value):
         """load pair-wise connection"""
         self._user_connections = value
+
+    def update_iteration(self):
+        self._iter_counter += 1
 
     def update(self):
         pass

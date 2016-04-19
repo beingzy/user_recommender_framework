@@ -91,7 +91,6 @@ class GWDUserRecommender(UserRecommenderMixin):
 
         # store attribute
         self._only_init_learn = only_init_learn
-        self._iter_counter = 0
 
         # load user-related information
         self.load_user_ids(user_ids)
@@ -182,12 +181,6 @@ class GWDUserRecommender(UserRecommenderMixin):
         self._fit_weights = fit_weights
         self._fit_groups = fit_groups
         self._all_group_ids = list(fit_groups.keys())
-
-        # increase interation counter
-        self._iter_counter += 1
-
-    def update_iteration(self):
-        self._iter_counter += 1
 
     def set_recommendation_size(self, size=5):
         self._size = size
