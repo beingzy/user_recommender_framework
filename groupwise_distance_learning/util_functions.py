@@ -18,7 +18,7 @@ from networkx import Graph
 from learning_dist_metrics.ldm import LDM
 from learning_dist_metrics.dist_metrics import weighted_euclidean
 from groupwise_distance_learning.kstest import kstest_2samp_greater
-
+from distance_metrics.GeneralDistanceWrapper import GeneralDistanceWrapper
 
 def zipf_pdf(k, n, s=1):
     """ return the probability of nth rank
@@ -69,6 +69,9 @@ def user_grouped_dist(user_id, weights, user_ids, user_profiles, user_graph):
     user_dist = user_grouped_dist(weights = learned_weights, user_id, user_ids,
         user_profiles, user_graph)
     """
+    gd_wrapper = GeneralDistanceWrapper()
+    gd_wrapper.fit(user_profiles)
+    gd_wrapper.load_weights(weights)
 
     # get the user_id of friends of the target user
     friend_ls = user_graph.neighbors(user_id)
@@ -82,14 +85,14 @@ def user_grouped_dist(user_id, weights, user_ids, user_profiles, user_graph):
     for f_id in friend_ls:
         idx = [i for i, uid in enumerate(user_ids) if uid == f_id]
         friend_profile = user_profiles[idx, :]
-        the_dist = weighted_euclidean(user_profile, friend_profile, weights)
+        the_dist = gd_wrapper.dist_euclidean(user_profile, friend_profile)
         sim_dist_vec.append(the_dist)
 
     diff_dist_vec = []
     for nf_id in non_friends_ls:
         idx = [i for i, uid in enumerate(user_ids) if uid == nf_id]
         non_friend_profile = user_profiles[idx, :]
-        the_dist = weighted_euclidean(user_profile, non_friend_profile, weights)
+        the_dist = gd_wrapper.dist_euclidean(user_profile, non_friend_profile)
         diff_dist_vec.append(the_dist)
 
     return sim_dist_vec, diff_dist_vec
@@ -250,7 +253,7 @@ def ldm_train_with_list(users_list, user_ids, user_profiles, user_connections, r
         friends = [(a, b) for a, b in user_connections if a in users_list and b in users_list]
 
     ldm = LDM()
-    ldm.fit(user_ids=user_ids, X=user_profiles, S=friends)
+    ldm.fit(user_ids=user_ids, user_profiles=user_profiles, S=friends)
     weight_vec = ldm.get_transform_matrix()
     return weight_vec
 

@@ -2,9 +2,10 @@
 Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/22
 """
+import numpy as np
 from numpy import sqrt
 from pandas import DataFrame
-from numpy import array, ndarray
+from numpy import ndarray
 
 
 class GeneralDistanceWrapper(object):
@@ -31,31 +32,61 @@ class GeneralDistanceWrapper(object):
     xydist_weighted = dist_func(x, y)
     """
 
-    def __init__(self, category_index=None):
+    def __init__(self, category_index=None, null_val=0):
         self._cat_idx = category_index
         self.load_weights()
+        self._null_val = null_val
 
     def fit(self, x):
         """ automate the detection of categoricay variables
         """
-        category_dtypes = [str, bool, object]
+        # cat_data_types = [bool, str, object]
+        null_val_symbols = [np.nan, None, 'nan', 'null', 'None', 'N/A', '']
+        category_dtypes = [str, bool, object, np.str_]
+
+        def return_nonull_values(x):
+            nonull_idx = [ii for ii, val in enumerate(x) \
+                          if not (val in null_val_symbols)]
+            return [x[idx] for idx in nonull_idx]
+
+        def detect_num_vs_cat(val):
+            try:
+                float(val)
+                return False
+            except:
+                return True
 
         if isinstance(x, list):
-            cat_idx = [ii for ii, val in enumerate(x) if type(val) in category_dtypes]
-            self._cat_idx = cat_idx
+            cat_idx = [ii for ii, val in enumerate(x) if detect_num_vs_cat(val)]
 
         if isinstance(x, ndarray):
-            first_row = x[0, :].tolist()
-            cat_idx = [ii for ii, val in enumerate(first_row) if type(val) in category_dtypes]
-            self._cat_idx = cat_idx
+            _, n_feats = x.shape
+            cat_idx = []
+            for ii in range(n_feats):
+                col_vals = x[:, ii]
+                col_vals = return_nonull_values(col_vals)
+                if len(col_vals) > 0:
+                    val = col_vals[0]
+                    if detect_num_vs_cat(val):
+                        cat_idx.append(ii)
 
         if isinstance(x, DataFrame):
-            all_feat_names = x.columns.tolist()
-            first_row = x.iloc[0, :].tolist()
-            cat_idx = [ii for ii, val in enumerate(first_row) if type(val) in category_dtypes]
+            _, n_feats = x.shape
+            cat_idx = []
+            for ii in range(n_feats):
+                col_vals = x[:, ii]
+                col_vals = return_nonull_values(col_vals)
+                if len(col_vals) > 0:
+                    val = col_vals[0]
+                    if detect_num_vs_cat(val):
+                        cat_idx.append(ii)
+
+            all_feat_names = x.columns
             cat_feat_names = [feat_name for ii, feat_name in enumerate(all_feat_names) if ii in cat_idx]
             self.set_features(all_feat_names=all_feat_names, cat_feat_names=cat_feat_names)
-            pass
+
+        self._cat_idx = cat_idx
+
 
     def set_features(self, all_feat_names, cat_feat_names):
         self._all_feat_names = all_feat_names
@@ -76,7 +107,7 @@ class GeneralDistanceWrapper(object):
     def update_category_index(self, category_index):
         self._cat_idx = category_index
 
-    def get_category_index(self, cateogry_index):
+    def get_category_index(self):
         return self._cat_idx
 
     def decompose(self, x):
@@ -103,6 +134,17 @@ class GeneralDistanceWrapper(object):
         b_num, b_cat = self.decompose(b)
         num_diff = [a - b for a, b in zip(a_num, b_num)]
         cat_diff = [0 if a == b else 1 for a, b in zip(a_cat, b_cat)]
+
+        if np.isnan(num_diff).sum() > 0:
+            num_diff = np.array(num_diff)
+            num_diff[np.isnan(num_diff)] = self._null_val
+            num_diff = num_diff.tolist()
+
+        if np.isnan(cat_diff).sum() > 0:
+            cat_diff = np.array(cat_diff)
+            cat_diff[np.isnan(cat_diff)] = self._null_val
+            cat_diff = cat_diff.tolist()
+
         return (num_diff, cat_diff)
 
     def get_difference(self, a, b):
