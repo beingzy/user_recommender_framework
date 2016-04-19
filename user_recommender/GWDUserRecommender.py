@@ -114,10 +114,11 @@ class GWDUserRecommender(UserRecommenderMixin):
         # marker for information updated
         self._is_updated = False
 
-        if update_iter_period is not None:
+        self._update_iter_period = update_iter_period
+
+        if not update_iter_period is None:
             # overwrite init_ if update_iter_period had been set
             self._only_init_learn = False
-            self._update_iter_period = update_iter_period
 
     def _return_user_group(self, user_id):
         """ return group key of a given user
@@ -127,6 +128,7 @@ class GWDUserRecommender(UserRecommenderMixin):
                 return gid
 
     def _triger_groupwise_learning(self):
+
         if self._only_init_learn:
             if self._iter_counter == 0:
                 self.gwd_learner.fit(self._user_ids,
@@ -142,17 +144,21 @@ class GWDUserRecommender(UserRecommenderMixin):
             current_iter = self._iter_counter
             update_period = self._update_iter_period
 
-            if current_iter % update_period == 0:
-                # update distance metrics
-                self.gwd_learner.fit(self._user_ids,
-                                     self._user_profiles,
-                                     self._user_connections)
-
+            if update_period is None:
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
             else:
-                fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                                                                    self._buffer_min_size)
+                if current_iter % update_period == 0:
+                    # update distance metrics
+                    self.gwd_learner.fit(self._user_ids,
+                                         self._user_profiles,
+                                         self._user_connections)
+
+                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                        self._buffer_min_size)
+                else:
+                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                        self._buffer_min_size)
 
         # process update pairwise distance matrix
         group_ids = fit_groups.keys()
