@@ -214,13 +214,29 @@ class UserRecSysExpSimulator(object):
         start_time = datetime.now()
         max_iter = self._set_info["max_iter"]
 
+        # export experiment information
+        fname = self.name + start_time.strftime("_%Y%m%d_%H%M%S.csv")
+        outfile = join(self._outpath, fname)
+
         exp_records = []
         with tqdm(total=max_iter) as pbar:
-            for ii in tqdm(range(max_iter)):
+            for ii in range(max_iter):
                 try:
+                    start_time = datetime.now()
+
                     record = self._update_one_step()
+                    # collect time per iteration
+                    time_cost = (datetime.now() - start_time).total_seconds()
+                    record["time_cost_min"] = round(time_cost / 60, 1)
                     exp_records.append(record)
-                    pbar.update()
+
+                    # write out test results
+                    if os.path.isfile(outfile):
+                        # with open(outfile, mode='wr', encoding='utf-8') as f:
+                        DataFrame([record]).to_csv(outfile, mode='a', header=False, index=False, sep=",")
+                    else:
+                        DataFrame([record]).to_csv(outfile, header=True, index=False, sep=",")
+
                     if self._no_growth_counter >= self._no_growth_max:
                         warnings.warn("experiment stops after reaching max number of no-growth iteration!")
                         break
@@ -228,12 +244,7 @@ class UserRecSysExpSimulator(object):
                     msg = "".join(["Error Happend, experiment hault earlier than design!"])
                     warnings.warn(msg)
                     break
-
-        # export experiment information
-        fname = self.name + start_time.strftime("_%Y%m%d_%H%M%S.csv")
-        outfile = join(self._outpath, fname)
-        # write out test results
-        DataFrame(exp_records).to_csv(outfile, header=True, index=False)
+                pbar.update()
 
     def sys_reset(self):
         """ reset recommender's initial conenctions information for
