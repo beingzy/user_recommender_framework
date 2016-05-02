@@ -15,7 +15,6 @@ from .SocialNetworkEvaluator import EvaluatorMixin
 from .UserClickSimulator import UserClickSimulatorMixin
 from ..user_recommender.UserRecommenderMixin import UserRecommenderMixin
 
-
 class UserRecSysExpSimulator(object):
 
     def __init__(self, name=None, outpath=None, is_directed=False):
