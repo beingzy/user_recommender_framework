@@ -10,11 +10,11 @@ from math import floor
 from datetime import datetime
 from copy import deepcopy
 
-from groupwise_distance_learning.util_functions import user_grouped_dist
-from groupwise_distance_learning.util_functions import user_dist_kstest
-from groupwise_distance_learning.util_functions import ldm_train_with_list
-from groupwise_distance_learning.util_functions import find_fit_group
-from groupwise_distance_learning.util_functions import zipf
+from .util_functions import user_grouped_dist
+from .util_functions import user_dist_kstest
+from .util_functions import ldm_train_with_list
+from .util_functions import find_fit_group
+from .util_functions import zipf
 
 
 def _init_dict_list(k):

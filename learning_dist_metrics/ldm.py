@@ -9,13 +9,10 @@ from itertools import combinations
 
 import numpy as np
 import pandas as pd
-import networkx as nx
 from scipy.optimize import minimize
 
-from learning_dist_metrics.dist_metrics import squared_sum_grouped_dist
-from learning_dist_metrics.dist_metrics import sum_grouped_dist
-from learning_dist_metrics.dist_metrics import weighted_euclidean
-from learning_dist_metrics.dist_metrics import WeightedDistanceTester
+from .dist_metrics import weighted_euclidean
+from .dist_metrics import WeightedDistanceTester
 
 
 class LDM(object):

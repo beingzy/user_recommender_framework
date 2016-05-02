@@ -1,11 +1,11 @@
 """
 """
 
-from learning_dist_metrics.dist_metrics import all_pairwise_dist
-from learning_dist_metrics.dist_metrics import pairwise_dist_wrapper
-from learning_dist_metrics.dist_metrics import squared_sum_grouped_dist
-from learning_dist_metrics.dist_metrics import sum_grouped_dist
-from learning_dist_metrics.dist_metrics import weighted_euclidean
+from .dist_metrics import all_pairwise_dist
+from .dist_metrics import pairwise_dist_wrapper
+from .dist_metrics import squared_sum_grouped_dist
+from .dist_metrics import sum_grouped_dist
+from .dist_metrics import weighted_euclidean
 
 __all__ = ['weighted_euclidean',
            'pairwise_dist_wrapper',

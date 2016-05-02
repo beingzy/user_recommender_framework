@@ -2,22 +2,12 @@
 Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/29
 """
-import os
-import sys
-import glob
 import numpy as np
-import scipy as sp
-import pandas as pd
-import networkx as nx
-from matplotlib import pyplot as plt
-
 from scipy.stats import rayleigh
-from numpy.random import choice
-from networkx import Graph
 
-from learning_dist_metrics.ldm import LDM
-from learning_dist_metrics.dist_metrics import weighted_euclidean
-from groupwise_distance_learning.kstest import kstest_2samp_greater
+from ..learning_dist_metrics.ldm import LDM
+from ..learning_dist_metrics.dist_metrics import weighted_euclidean
+from .kstest import kstest_2samp_greater
 
 
 def zipf_pdf(k, n, s=1):

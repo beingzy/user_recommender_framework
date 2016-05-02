@@ -5,7 +5,7 @@ Date: 2016/02/20
 from pandas import DataFrame
 from itertools import combinations
 # from scipy.spatial.distance import euclidean
-from distance_metrics import GeneralDistanceWrapper
+from ..distance_metrics import GeneralDistanceWrapper
 
 class PairwiseDistMatrix(object):
 

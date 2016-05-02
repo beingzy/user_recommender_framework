@@ -3,9 +3,9 @@ Author: Yi Zhang <beingzy@gmail.com>
 Date: 2016/02/20
 """
 from numpy import array, vstack
-from user_recommender import UserRecommenderMixin
-from distance_metrics import GeneralDistanceWrapper
-from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
+from . import UserRecommenderMixin
+from ..distance_metrics import GeneralDistanceWrapper
+from .PairwiseDistMatrix import PairwiseDistMatrix
 
 
 class NNUserRecommender(UserRecommenderMixin):

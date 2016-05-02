@@ -5,10 +5,10 @@ Date: 2016/04/05
 """
 from numpy import array, vstack
 from pandas import DataFrame
-from user_recommender import UserRecommenderMixin
-from distance_metrics import GeneralDistanceWrapper
-from user_recommender.PairwiseDistMatrix import PairwiseDistMatrix
-from groupwise_distance_learning.groupwise_distance_learner import GroupwiseDistLearner
+from . import UserRecommenderMixin
+from .PairwiseDistMatrix import PairwiseDistMatrix
+from ..groupwise_distance_learning.groupwise_distance_learner import GroupwiseDistLearner
+from ..distance_metrics import GeneralDistanceWrapper
 
 
 def _consolidate_learned_info(gwd_learner, buffer_min_size=None):

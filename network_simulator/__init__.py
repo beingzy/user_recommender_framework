@@ -1,7 +1,7 @@
-from network_simulator.UserRecSysExpSimulator import UserRecSysExpSimulator
-from network_simulator.SocialNetworkEvaluator import EvaluatorMixin
-from network_simulator.SocialNetworkEvaluator import SocialNetworkEvaluator
-from network_simulator.UserClickSimulator import UserClickSimulator
+from .UserRecSysExpSimulator import UserRecSysExpSimulator
+from .SocialNetworkEvaluator import EvaluatorMixin
+from .SocialNetworkEvaluator import SocialNetworkEvaluator
+from .UserClickSimulator import UserClickSimulator
 
 
 __all__ = ['UserRecSysExpSimulator',

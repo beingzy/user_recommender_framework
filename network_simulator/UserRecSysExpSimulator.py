@@ -11,9 +11,9 @@ import numpy as np
 from numpy import array
 from pandas import DataFrame
 from tqdm import tqdm
-from user_recommender.UserRecommenderMixin import UserRecommenderMixin
-from network_simulator.SocialNetworkEvaluator import EvaluatorMixin
-from network_simulator.UserClickSimulator import UserClickSimulatorMixin
+from .SocialNetworkEvaluator import EvaluatorMixin
+from .UserClickSimulator import UserClickSimulatorMixin
+from ..user_recommender.UserRecommenderMixin import UserRecommenderMixin
 
 
 class UserRecSysExpSimulator(object):
