@@ -61,7 +61,11 @@ def user_grouped_dist(user_id, weights, user_ids, user_profiles, user_graph):
     """
 
     # get the user_id of friends of the target user
-    friend_ls = user_graph.neighbors(user_id)
+    try:
+        friend_ls = user_graph.neighbors(user_id)
+    except:
+        friend_ls = []
+        
     non_friends_ls = [u for u in user_ids if u not in friend_ls + [user_id]]
 
     # retrive target user's profile

@@ -1,6 +1,6 @@
 """ Simulation Experiment Framework for User Recommendation System
 Author: Yi Zhang <beingzy@gmail.com>
-Date: 2016/02/21
+Date: 2016/05/02
 """
 import os
 from os import getcwd
@@ -14,6 +14,7 @@ from tqdm import tqdm
 from .SocialNetworkEvaluator import EvaluatorMixin
 from .UserClickSimulator import UserClickSimulatorMixin
 from ..user_recommender.UserRecommenderMixin import UserRecommenderMixin
+
 
 class UserRecSysExpSimulator(object):
 
