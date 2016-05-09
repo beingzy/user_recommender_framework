@@ -102,6 +102,11 @@ class GWDUserRecommender(UserRecommenderMixin):
         # generation
         self._pdm_container = {}
 
+        # store ordered un-connected users
+        # which would be reset per every
+        # distance metrics update
+        self._ordered_cand_dict = {}
+
         # Groupwise Distance Learner output container
         self._fit_weights = {}
         self._fit_groups = {}
@@ -213,6 +218,8 @@ class GWDUserRecommender(UserRecommenderMixin):
             # either
             self._triger_groupwise_learning()
             self._is_updated = False
+            self._pdm_container = {}
+            self._ordered_cand_dict = {}
 
     def add_new_connections(self, new_user_connections):
         if isinstance(new_user_connections, list):
@@ -230,27 +237,37 @@ class GWDUserRecommender(UserRecommenderMixin):
         return list(set(b_user_ids + a_user_ids))
 
     def gen_suggestion(self, user_id, block_list=[]):
-        # get all condadaite user
-        user_gid = self._return_user_group(user_id)
-        cand_user_ids, cand_user_dist = self._pdm_container[user_gid].list_all_dist(user_id)
-        con_user_ids = self.get_connected_users(user_id)
-
-        if len(block_list) > 0:
-            remove_list = block_list + con_user_ids
-        else:
-            remove_list = con_user_ids
-
-        # remove connected users from condidate list
-        keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in remove_list]
-        cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
-        cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
-
-        # sort candidates by distance
-        sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
-        sorted_cand_uids = [uid for uid, _ in sorted_list]
-
+        # yield suggestions
         size = self._size
-        if len(sorted_cand_uids) > size:
-            return sorted_cand_uids[:size]
+        if user_id in self._ordered_cand_dict:
+            sorted_cand_uids = self._ordered_cand_dict[user_id]
+            suggestion = sorted_cand_uids[:size]
+            del sorted_cand_uids[:size]
+            return suggestion
+
         else:
-            return sorted_cand_uids
+            user_gid = self._return_user_group(user_id)
+            cand_user_ids, cand_user_dist = self._pdm_container[user_gid].list_all_dist(user_id)
+            con_user_ids = self.get_connected_users(user_id)
+
+            if len(block_list) > 0:
+                remove_list = block_list + con_user_ids
+            else:
+                remove_list = con_user_ids
+
+            # remove connected users from condidate list
+            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in remove_list]
+            cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
+            cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
+
+            # sort candidates by distance
+            sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
+            sorted_cand_uids = [uid for uid, _ in sorted_list]
+
+            # genearte suggestions
+            suggestion = sorted_cand_uids[:size]
+            del sorted_cand_uids[:size]
+
+            self._ordered_cand_dict[user_id] = sorted_cand_uids
+
+            return suggestion
