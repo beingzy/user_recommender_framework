@@ -136,10 +136,6 @@ class GWDUserRecommender(UserRecommenderMixin):
 
         if self._only_init_learn:
             if self._iter_counter == 0:
-                self.gwd_learner.fit(self._user_ids,
-                                     self._user_profiles,
-                                     self._user_connections)
-
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
             else:
