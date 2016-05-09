@@ -38,8 +38,6 @@ class UserRecSysExpSimulator(object):
         self._iteration = 0
         self._no_growth_counter = 0
         self.set_no_growth_max(10)
-        # track user who had been rejected
-        self._rejected_hist = {}
 
         # experiment ciritical components
         self._recommender = None
@@ -164,11 +162,7 @@ class UserRecSysExpSimulator(object):
             for ii, user_id in enumerate(uniq_user_ids):
                 # retrive the list of candidates who had been presented
                 # and not accepted in the past.
-                if user_id in self._rejected_hist:
-                    recommended = self._rejected_hist[user_id]
-                    suggestions = self._recommender.gen_suggestion(user_id=user_id, remove_list=recommended)
-                else:
-                    suggestions = self._recommender.gen_suggestion(user_id=user_id)
+                suggestions = self._recommender.gen_suggestion(user_id=user_id)
                 accepted, rejected = self._clicker.click(suggestions)
 
                 # add new formed user connections
@@ -178,13 +172,6 @@ class UserRecSysExpSimulator(object):
                         new_connections = pairs
                     else:
                         new_connections.extend(pairs)
-
-                # track rejected users
-                if len(rejected) > 0:
-                    if user_id in self._rejected_hist:
-                        self._rejected_hist[user_id].extend(user_id)
-                    else:
-                        self._rejected_hist[user_id] = rejected
 
             # consolidate new connections
             new_connections = array(new_connections)
