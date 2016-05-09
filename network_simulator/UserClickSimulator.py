@@ -40,8 +40,8 @@ def convert_pair_dictionary(user_connections):
 
 class UserClickSimulatorMixin(object):
 
-    def click(self, rec_list):
-        return None
+    def click(self, user_id, rec_list):
+        return [], []
 
 
 class UserClickSimulator(UserClickSimulatorMixin):
@@ -49,7 +49,7 @@ class UserClickSimulator(UserClickSimulatorMixin):
     def __init__(self, track_rejected=False):
         self._track_rejected = track_rejected
 
-    def click(self, rec_list, track_rejected=False):
+    def click(self, user_id, rec_list, track_rejected=False):
         # simulation process: generate recommendation list for user
         # user clicks list of recommended users how many times the user would click
         click_size = choice([0, 1], p=[0.2, 0.8])

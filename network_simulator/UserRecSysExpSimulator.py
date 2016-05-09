@@ -163,7 +163,7 @@ class UserRecSysExpSimulator(object):
                 # retrive the list of candidates who had been presented
                 # and not accepted in the past.
                 suggestions = self._recommender.gen_suggestion(user_id=user_id)
-                accepted, rejected = self._clicker.click(suggestions)
+                accepted, rejected = self._clicker.click(user_id, suggestions)
 
                 # add new formed user connections
                 if len(accepted) > 0:
