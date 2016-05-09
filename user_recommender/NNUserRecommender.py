@@ -17,6 +17,11 @@ class NNUserRecommender(UserRecommenderMixin):
         self.load_user_profiles(user_profiles)
         self.load_user_connections(user_connections)
 
+        # store ordered un-connected users
+        # which would be reset per every
+        # distance metrics update
+        self._ordered_cand_dict = {}
+
         # load generalized distance wrapper to deal with cateogrical features
         self._general_dist_wrapper = GeneralDistanceWrapper()
         # learn which features of user_profile are categorical
@@ -77,25 +82,38 @@ class NNUserRecommender(UserRecommenderMixin):
         a_user_ids = [pp[0] for pp in self._user_connections if pp[1] == user_id]
         return list(set(b_user_ids + a_user_ids))
 
-    def gen_suggestion(self, user_id):
+    def gen_suggestion(self, user_id, block_list=[]):
         """ generate recommendation for a specified user """
-        cand_user_ids, cand_user_dist = self._dist_matrix.list_all_dist(user_id)
-        con_user_ids = self.get_connected_users(user_id)
-
-        # remove connected users from condidate list
-        keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in con_user_ids]
-        cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
-        cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
-
-        # sort candidates by distance
-        sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
-        sorted_cand_uids = [uid for uid, _ in sorted_list]
-
         size = self._size
-        if len(sorted_cand_uids) > size:
-            return sorted_cand_uids[:size]
+
+        if user_id in self._ordered_cand_dict:
+            sorted_cand_uids = self._ordered_cand_dict[user_id]
+            if len(sorted_cand_uids) > size:
+                suggestion = sorted_cand_uids[:size]
+                del sorted_cand_uids[:size]
+            else:
+                suggestion = sorted_cand_uids
+                self._ordered_cand_dict[user_id] = []
+            return suggestion
+
         else:
-            return sorted_cand_uids
+            cand_user_ids, cand_user_dist = self._dist_matrix.list_all_dist(user_id)
+            con_user_ids = self.get_connected_users(user_id)
+
+            # remove connected users from condidate list
+            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in con_user_ids]
+            cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
+            cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
+
+            # sort candidates by distance
+            sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
+            sorted_cand_uids = [uid for uid, _ in sorted_list]
+
+            suggestion = sorted_cand_uids[:size]
+            del sorted_cand_uids[:size]
+
+            self._ordered_cand_dict[user_id] = sorted_cand_uids
+            return suggestion
 
 
 class DNNUserRecommender(NNUserRecommender):

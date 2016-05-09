@@ -238,8 +238,12 @@ class GWDUserRecommender(UserRecommenderMixin):
         size = self._size
         if user_id in self._ordered_cand_dict:
             sorted_cand_uids = self._ordered_cand_dict[user_id]
-            suggestion = sorted_cand_uids[:size]
-            del sorted_cand_uids[:size]
+            if len(sorted_cand_uids) > size:
+                suggestion = sorted_cand_uids[:size]
+                del sorted_cand_uids[:size]
+            else:
+                suggestion = sorted_cand_uids
+                self._ordered_cand_dict[user_id] = []
             return suggestion
 
         else:
