@@ -229,14 +229,19 @@ class GWDUserRecommender(UserRecommenderMixin):
         a_user_ids = [pp[0] for pp in self._user_connections if pp[1] == user_id]
         return list(set(b_user_ids + a_user_ids))
 
-    def gen_suggestion(self, user_id):
+    def gen_suggestion(self, user_id, block_list=[]):
         # get all condadaite user
         user_gid = self._return_user_group(user_id)
         cand_user_ids, cand_user_dist = self._pdm_container[user_gid].list_all_dist(user_id)
         con_user_ids = self.get_connected_users(user_id)
 
+        if len(block_list) > 0:
+            remove_list = block_list + con_user_ids
+        else:
+            remove_list = con_user_ids
+
         # remove connected users from condidate list
-        keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in con_user_ids]
+        keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in remove_list]
         cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
         cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
 

@@ -162,7 +162,13 @@ class UserRecSysExpSimulator(object):
             # operation goes here ...
             uniq_user_ids = self._recommender._user_ids
             for ii, user_id in enumerate(uniq_user_ids):
-                suggestions = self._recommender.gen_suggestion(user_id=user_id)
+                # retrive the list of candidates who had been presented
+                # and not accepted in the past.
+                if user_id in self._rejected_hist:
+                    recommended = self._rejected_hist[user_id]
+                    suggestions = self._recommender.gen_suggestion(user_id=user_id, remove_list=recommended)
+                else:
+                    suggestions = self._recommender.gen_suggestion(user_id=user_id)
                 accepted, rejected = self._clicker.click(suggestions)
 
                 # add new formed user connections
