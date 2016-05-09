@@ -41,12 +41,15 @@ def convert_pair_dictionary(user_connections):
 class UserClickSimulatorMixin(object):
 
     def click(self, rec_list):
-        return rec_list
+        return None
 
 
 class UserClickSimulator(UserClickSimulatorMixin):
 
-    def click(self, rec_list):
+    def __init__(self, track_rejected=False):
+        self._track_rejected = track_rejected
+
+    def click(self, rec_list, track_rejected=False):
         # simulation process: generate recommendation list for user
         # user clicks list of recommended users how many times the user would click
         click_size = choice([0, 1], p=[0.2, 0.8])
@@ -56,12 +59,17 @@ class UserClickSimulator(UserClickSimulatorMixin):
             # allowed
             n = len(rec_list)
             click_probs = [zipf_pdf(ii + 1, n, s=1) for ii in range(n)]
-            confirmed = choice(rec_list, click_size, False, click_probs)
-            confirmed = list(confirmed)
+            accepted = choice(rec_list, click_size, False, click_probs)
+            accepted = list(accepted)
         else:
-            confirmed = []
+            accepted = []
 
-        return confirmed
+        if self._track_rejected:
+            rejected = [uid for uid in rec_list if not (uid in accepted)]
+        else:
+            rejected = []
+
+        return accepted, rejected
 
 
 class GuidedUserClickSimulatior(UserClickSimulatorMixin):
@@ -79,12 +87,12 @@ class GuidedUserClickSimulatior(UserClickSimulatorMixin):
     def click(self, target_user_id, rec_list):
         known_user_conns = self._ref_user_connections[target_user_id]
         accepted = []
-        recommended = []
+        rejected = []
         for ii, uid in enumerate(rec_list):
             if uid in known_user_conns:
                 accepted.append(uid)
             else:
-                recommended.append(uid)
+                rejected.append(uid)
 
-        return accepted, recommended
+        return accepted, rejected
 
