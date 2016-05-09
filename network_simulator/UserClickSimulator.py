@@ -72,7 +72,7 @@ class UserClickSimulator(UserClickSimulatorMixin):
         return accepted, rejected
 
 
-class GuidedUserClickSimulatior(UserClickSimulatorMixin):
+class GuidedUserClickSimulator(UserClickSimulatorMixin):
 
     def __init__(self, reference_user_connections):
         """
