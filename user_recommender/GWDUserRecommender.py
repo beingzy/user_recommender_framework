@@ -150,20 +150,20 @@ class GWDUserRecommender(UserRecommenderMixin):
             update_period = self._update_iter_period
 
             if update_period is None:
+                update_period == 1
+                #fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                #                                                    self._buffer_min_size)
+            #else:
+            if current_iter % update_period == 0:
+                # update distance metrics
+                self.gwd_learner.fit(self._user_ids,
+                                     self._user_profiles,
+                                     self._user_connections)
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
             else:
-                if current_iter % update_period == 0:
-                    # update distance metrics
-                    self.gwd_learner.fit(self._user_ids,
-                                         self._user_profiles,
-                                         self._user_connections)
-
-                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                                                                        self._buffer_min_size)
-                else:
-                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                                                                        self._buffer_min_size)
+                fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                    self._buffer_min_size)
 
         # process update pairwise distance matrix
         group_ids = fit_groups.keys()
