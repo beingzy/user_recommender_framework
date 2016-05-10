@@ -27,7 +27,7 @@ class UserClickSimulatorMixin(object):
 
 class UserClickSimulator(UserClickSimulatorMixin):
 
-    def click(self, user_id, rec_list):
+    def click(self, target_user_id, rec_list):
         # simulation process: generate recommendation list for user
         # user clicks list of recommended users how many times the user would click
         click_size = choice([0, 1], p=[0.2, 0.8])
