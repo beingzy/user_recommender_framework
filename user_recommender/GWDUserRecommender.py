@@ -73,6 +73,7 @@ class GWDUserRecommender(UserRecommenderMixin):
         """
 
         super().__init__()
+
         if isinstance(user_profiles, DataFrame):
             user_profiles = user_profiles.as_matrix()
 
@@ -88,9 +89,6 @@ class GWDUserRecommender(UserRecommenderMixin):
             self._buffer_min_size = kwargs["buffer_min_size"]
         except:
             self._buffer_min_size = None # load function default value
-
-        # store attribute
-        self._only_init_learn = only_init_learn
 
         # load user-related information
         self.load_user_ids(user_ids)
@@ -113,10 +111,8 @@ class GWDUserRecommender(UserRecommenderMixin):
         self._all_group_ids = []
 
         # define update frequency
+        self._only_init_learn = only_init_learn
         self._update_iter_period = update_iter_period
-        if not update_iter_period is None:
-            # overwrite init_ if update_iter_period had been set
-            self._only_init_learn = False
 
         # equip with GWD leanner
         self.gwd_learner = GroupwiseDistLearner(**kwargs)
@@ -134,12 +130,18 @@ class GWDUserRecommender(UserRecommenderMixin):
 
     def _triger_groupwise_learning(self):
 
-        if self._only_init_learn:
-            if self._iter_counter == 0:
+        if self._iter_counter == 0:
+            # try to access to see if self.gwd_learned had trigger learning
+            try:
+                fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                    self._buffer_min_size)
+            except:
                 self.gwd_learner.fit(self._user_ids,
                                      self._user_profiles,
                                      self._user_connections)
 
+        if self._only_init_learn:
+            if self._iter_counter == 0:
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
             else:
@@ -150,20 +152,19 @@ class GWDUserRecommender(UserRecommenderMixin):
             update_period = self._update_iter_period
 
             if update_period is None:
-                update_period == 1
-                #fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                #                                                    self._buffer_min_size)
-            #else:
-            if current_iter % update_period == 0:
-                # update distance metrics
-                self.gwd_learner.fit(self._user_ids,
-                                     self._user_profiles,
-                                     self._user_connections)
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
             else:
-                fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                                                                    self._buffer_min_size)
+                if current_iter % update_period == 0:
+                    # update distance metrics
+                    self.gwd_learner.fit(self._user_ids,
+                                         self._user_profiles,
+                                         self._user_connections)
+                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                        self._buffer_min_size)
+                else:
+                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                        self._buffer_min_size)
 
         # process update pairwise distance matrix
         group_ids = fit_groups.keys()
