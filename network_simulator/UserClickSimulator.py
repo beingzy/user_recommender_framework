@@ -27,22 +27,26 @@ class UserClickSimulatorMixin(object):
 
 class UserClickSimulator(UserClickSimulatorMixin):
 
-    def click(self, rec_list):
+    def click(self, target_user_id, rec_list):
         # simulation process: generate recommendation list for user
         # user clicks list of recommended users how many times the user would click
+        # this experiment style allows re-suggestions on recommended users
         click_size = choice([0, 1], p=[0.2, 0.8])
 
+        accepted, rejected = [], []
         if click_size > 0 and len(rec_list) > 0:
             # this method is contrained by _prob_distributor's maximum
             # allowed
             n = len(rec_list)
             click_probs = [zipf_pdf(ii + 1, n, s=1) for ii in range(n)]
-            confirmed = choice(rec_list, click_size, False, click_probs)
-            confirmed = list(confirmed)
+            accepted = choice(rec_list, click_size, False, click_probs)
+            accepted = list(accepted)
+            rejected = []
         else:
-            confirmed = []
+            accepted = []
+            rejected = []
 
-        return confirmed
+        return accepted, rejected
 
 
 class GuidedUserClickSimulator(UserClickSimulatorMixin):
@@ -59,8 +63,7 @@ class GuidedUserClickSimulator(UserClickSimulatorMixin):
 
     def click(self, target_user_id, rec_list):
         known_user_conns = self._ref_user_connections[target_user_id]
-        accepted = []
-        rejected = []
+        accepted, rejected = [], []
         for ii, uid in enumerate(rec_list):
             if uid in known_user_conns:
                 accepted.append(uid)
