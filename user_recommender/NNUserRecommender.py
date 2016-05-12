@@ -10,7 +10,7 @@ from .PairwiseDistMatrix import PairwiseDistMatrix
 
 class NNUserRecommender(UserRecommenderMixin):
 
-    def __init__(self, user_ids, user_profiles, user_connections):
+    def __init__(self, user_ids, user_profiles, user_connections, weights=None):
         super().__init__()
         # load user-related information
         self.load_user_ids(user_ids)
@@ -22,7 +22,7 @@ class NNUserRecommender(UserRecommenderMixin):
         # learn which features of user_profile are categorical
         self._general_dist_wrapper.fit(self._user_profiles)
         # initiate default weights for distance caluclation
-        self._general_dist_wrapper.load_weights(weights=None)
+        self._general_dist_wrapper.load_weights(weights)
         # extract function method for PairwiseDistMatrix
         fit_dist_func = self._general_dist_wrapper.dist_euclidean
 
