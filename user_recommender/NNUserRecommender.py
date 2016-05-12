@@ -17,11 +17,6 @@ class NNUserRecommender(UserRecommenderMixin):
         self.load_user_profiles(user_profiles)
         self.load_user_connections(user_connections)
 
-        # store ordered un-connected users
-        # which would be reset per every
-        # distance metrics update
-        self._ordered_cand_dict = {}
-
         # load generalized distance wrapper to deal with cateogrical features
         self._general_dist_wrapper = GeneralDistanceWrapper()
         # learn which features of user_profile are categorical
@@ -38,6 +33,12 @@ class NNUserRecommender(UserRecommenderMixin):
         self._dist_matrix.update_distance_matrix()
         # defulat maximum number of suggsetion per recommendation query
         self._size = 5
+
+        # store ordered un-connected users
+        # which would be reset per every
+        # distance metrics update
+        self._ordered_cand_dict = {}
+        self._rejected_user_dict = {}
 
     def _update_dist_func(self):
         self._general_dist_wrapper.fit(self._user_profiles)
@@ -84,21 +85,24 @@ class NNUserRecommender(UserRecommenderMixin):
 
     def gen_suggestion(self, user_id, block_list=[]):
         """ generate recommendation for a specified user """
-        con_user_ids = self.get_connected_users(user_id)
-        if len(block_list) > 0:
-            # if block_list is not empty, acquire con_user_ids
-            block_list.extend(con_user_ids)
-        else:
-            block_list = con_user_ids
+        size = self._size
 
-        # retrieve orderred candidate
         if user_id in self._ordered_cand_dict:
             sorted_cand_uids = self._ordered_cand_dict[user_id]
-            sorted_cand_uids = [uid for uid in sorted_cand_uids if not uid in block_list]
+            if len(sorted_cand_uids) > size:
+                suggestion = sorted_cand_uids[:size]
+                del self._ordered_cand_dict[user_id][:size]
+            else:
+                suggestion = sorted_cand_uids
+                self._ordered_cand_dict[user_id] = []
+            return suggestion
+
         else:
             cand_user_ids, cand_user_dist = self._dist_matrix.list_all_dist(user_id)
+            con_user_ids = self.get_connected_users(user_id)
+
             # remove connected users from condidate list
-            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in block_list]
+            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in con_user_ids]
             cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
             cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
 
@@ -106,14 +110,17 @@ class NNUserRecommender(UserRecommenderMixin):
             sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
             sorted_cand_uids = [uid for uid, _ in sorted_list]
 
-            # append the ordered list
-            self._ordered_cand_dict[user_id] = sorted_cand_uids
+            suggestion = sorted_cand_uids[:size]
+            del sorted_cand_uids[:size]
 
-        size = self._size
-        if len(sorted_cand_uids) > size:
-            return sorted_cand_uids[:size]
+            self._ordered_cand_dict[user_id] = sorted_cand_uids
+            return suggestion
+
+    def update_reject_dict(self, user_id, rejected_list):
+        if user_id in self._rejected_user_dict:
+            self._rejected_user_dict[user_id].extend(rejected_list)
         else:
-            return sorted_cand_uids
+            self._rejected_user_dict[user_id] = rejected_list
 
 
 class DNNUserRecommender(NNUserRecommender):

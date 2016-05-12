@@ -239,6 +239,7 @@ class GWDUserRecommender(UserRecommenderMixin):
     def gen_suggestion(self, user_id, block_list=[]):
         """ generate recommendation list for target user: user_id
         """
+        size = self._size
         con_user_ids = self.get_connected_users(user_id)
         if len(block_list) > 0:
             # if block_list is not empty, acquire con_user_ids
@@ -248,12 +249,19 @@ class GWDUserRecommender(UserRecommenderMixin):
 
         # get a complete list of recommended user ordered
         # by distance
-        try:
+        if user_id in self._ordered_cand_dict:
             # retrieve the order commendation list
             sorted_cand_uids = self._ordered_cand_dict[user_id]
             # remove candidates in block_list
-            sorted_cand_uids = [uid for uid in sorted_cand_uids if not uid in block_list]
-        except:
+            if len(sorted_cand_uids) > size:
+                suggestion = sorted_cand_uids[:size]
+                del self._ordered_cand_dict[user_id][:size]
+            else:
+                suggestion = sorted_cand_uids
+                self._ordered_cand_dict[user_id] = []
+            return suggestion
+
+        else:
             # when
             user_gid = self._return_user_group(user_id)
             cand_user_ids, cand_user_dist = self._pdm_container[user_gid].list_all_dist(user_id)
@@ -267,11 +275,9 @@ class GWDUserRecommender(UserRecommenderMixin):
             sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
             sorted_cand_uids = [uid for uid, _ in sorted_list]
 
+            suggestion = sorted_cand_uids[:size]
+            del sorted_cand_uids[:size]
+
             # append the ordered list
             self._ordered_cand_dict[user_id] = sorted_cand_uids
-
-        size = self._size
-        if len(sorted_cand_uids) > size:
-            return sorted_cand_uids[:size]
-        else:
-            return sorted_cand_uids
+            return suggestion
