@@ -101,6 +101,9 @@ class GWDUserRecommender(UserRecommenderMixin):
         # which store ciritical information for recommendation
         # generation
         self._pdm_container = {}
+        # store orderred unconnected users
+        # and the container will be reset per distance metrics update
+        self._ordered_cand_dict = {}
 
         # Groupwise Distance Learner output container
         self._fit_weights = {}
@@ -138,6 +141,8 @@ class GWDUserRecommender(UserRecommenderMixin):
                 self.gwd_learner.fit(self._user_ids,
                                      self._user_profiles,
                                      self._user_connections)
+                # reset candidate
+                self._ordered_cand_dict = {}
 
 
         # check if updating the GDL model is needed
@@ -231,20 +236,39 @@ class GWDUserRecommender(UserRecommenderMixin):
         a_user_ids = [pp[0] for pp in self._user_connections if pp[1] == user_id]
         return list(set(b_user_ids + a_user_ids))
 
-    def gen_suggestion(self, user_id):
-        # get all condadaite user
-        user_gid = self._return_user_group(user_id)
-        cand_user_ids, cand_user_dist = self._pdm_container[user_gid].list_all_dist(user_id)
+    def gen_suggestion(self, user_id, block_list=[]):
+        """ generate recommendation list for target user: user_id
+        """
         con_user_ids = self.get_connected_users(user_id)
+        if len(block_list) > 0:
+            # if block_list is not empty, acquire con_user_ids
+            block_list.extend(con_user_ids)
+        else:
+            block_list = con_user_ids
 
-        # remove connected users from condidate list
-        keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in con_user_ids]
-        cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
-        cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
+        # get a complete list of recommended user ordered
+        # by distance
+        try:
+            # retrieve the order commendation list
+            sorted_cand_uids = self._ordered_cand_dict[user_id]
+            # remove candidates in block_list
+            sorted_cand_uids = [uid for uid in sorted_cand_uids if not uid in block_list]
+        except:
+            # when
+            user_gid = self._return_user_group(user_id)
+            cand_user_ids, cand_user_dist = self._pdm_container[user_gid].list_all_dist(user_id)
 
-        # sort candidates by distance
-        sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
-        sorted_cand_uids = [uid for uid, _ in sorted_list]
+            # remove connected users from candidate list
+            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in block_list]
+            cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
+            cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
+
+            # sort candidates by distance
+            sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
+            sorted_cand_uids = [uid for uid, _ in sorted_list]
+
+            # append the ordered list
+            self._ordered_cand_dict[user_id] = sorted_cand_uids
 
         size = self._size
         if len(sorted_cand_uids) > size:
