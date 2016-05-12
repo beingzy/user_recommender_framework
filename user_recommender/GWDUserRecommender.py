@@ -128,9 +128,30 @@ class GWDUserRecommender(UserRecommenderMixin):
                 return gid
 
     def _triger_groupwise_learning(self):
+        # initial the learning of embedded GDL algorithm
+        if self._iter_counter == 0:
+            # avoid repeated initial learning
+            try:
+                fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                    self._buffer_min_size)
+            except:
+                self.gwd_learner.fit(self._user_ids,
+                                     self._user_profiles,
+                                     self._user_connections)
 
+
+        # check if updating the GDL model is needed
         if self._only_init_learn:
-            if self._iter_counter == 0:
+            fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
+                                                                self._buffer_min_size)
+        else:
+            current_iter = self._iter_counter
+            update_period = self._update_iter_period
+            if update_period is None:
+                update_period = 1
+
+            if current_iter % update_period == 0:
+                # update distance metrics
                 self.gwd_learner.fit(self._user_ids,
                                      self._user_profiles,
                                      self._user_connections)
@@ -138,27 +159,8 @@ class GWDUserRecommender(UserRecommenderMixin):
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
             else:
-                fit_weights, fit_groups = self._fit_weights, self._fit_groups
-
-        else:
-            current_iter = self._iter_counter
-            update_period = self._update_iter_period
-
-            if update_period is None:
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
-            else:
-                if current_iter % update_period == 0:
-                    # update distance metrics
-                    self.gwd_learner.fit(self._user_ids,
-                                         self._user_profiles,
-                                         self._user_connections)
-
-                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                                                                        self._buffer_min_size)
-                else:
-                    fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
-                                                                        self._buffer_min_size)
 
         # process update pairwise distance matrix
         group_ids = fit_groups.keys()
