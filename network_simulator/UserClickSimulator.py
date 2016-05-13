@@ -73,7 +73,7 @@ class GuidedUserClickSimulator(UserClickSimulatorMixin):
         return accepted, rejected
 
 
-def _convert_pair_dictionary(user_connections):
+def _convert_pair_dictionary(user_connections, is_directed=False):
     """ translate user pairs into user-wise dictionary
     """
     user_conn_dict = {}
@@ -84,10 +84,11 @@ def _convert_pair_dictionary(user_connections):
         else:
             user_conn_dict[uid_a] = [uid_b]
 
-        if uid_b in user_conn_dict:
-            user_conn_dict[uid_b].append(uid_a)
-        else:
-            user_conn_dict[uid_b] = [uid_a]
+        if not is_directed:
+            if uid_b in user_conn_dict:
+                user_conn_dict[uid_b].append(uid_a)
+            else:
+                user_conn_dict[uid_b] = [uid_a]
 
     return user_conn_dict
 
