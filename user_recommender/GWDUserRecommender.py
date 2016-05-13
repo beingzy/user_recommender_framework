@@ -125,6 +125,23 @@ class GWDUserRecommender(UserRecommenderMixin):
         # marker for information updated
         self._is_updated = False
 
+        # load distance wrapper
+        self._gd_wrapper = GeneralDistanceWrapper()
+        self._gd_wrapper.fit(user_profiles)
+
+    def _get_distance(self, a_user_id, b_user_id):
+        """ calcualte two users's distance from user a's group weights
+        """
+        a_user_idx = [i for i, uid in enumerate(self._user_ids) if uid == a_user_id][0]
+        b_user_idx = [i for i, uid in enumerate(self._user_ids) if uid == b_user_id][0]
+        a_user_profile = self._user_profiles[a_user_idx, :]
+        b_user_profile = self._user_profiles[b_user_idx, :]
+
+        gid = self._return_user_group(a_user_id)
+        weights = self._fit_weights[gid]
+        self._gd_wrapper.load_weights(weights)
+        return self._gd_wrapper.dist_euclidean(a_user_profile, b_user_profile)
+
     def _return_user_group(self, user_id):
         """ return group key of a given user
         """
@@ -145,7 +162,6 @@ class GWDUserRecommender(UserRecommenderMixin):
                                      self._user_connections)
                 # reset candidate
                 self._ordered_cand_dict = {}
-
 
         # check if updating the GDL model is needed
         if self._only_init_learn:
@@ -169,30 +185,8 @@ class GWDUserRecommender(UserRecommenderMixin):
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
 
-        # process update pairwise distance matrix
-        group_ids = fit_groups.keys()
-        pdm_container = {}
-
-        for ii, group_id in enumerate(group_ids):
-            # load weighted distance
-            target_weights = fit_weights[group_id]
-            temp_dist_wrapper = GeneralDistanceWrapper()
-            temp_dist_wrapper.fit(self._user_profiles)
-            temp_dist_wrapper.load_weights(target_weights)
-            target_dist_func = temp_dist_wrapper.dist_euclidean
-
-            # load distance matrix container
-            target_user_ids = fit_groups[group_id]
-            pdm = PairwiseDistMatrix(self._user_ids, self._user_profiles,
-                                     target_user_ids=target_user_ids)
-            # load weighted distance calculation and
-            pdm.set_dist_func(target_dist_func)
-            pdm.update_distance_matrix()
-
-            pdm_container[group_id] = pdm
-
         # update attribute
-        self._pdm_container = pdm_container
+        # self._pdm_container = pdm_container
         self._fit_weights = fit_weights
         self._fit_groups = fit_groups
         self._all_group_ids = list(fit_groups.keys())
@@ -242,12 +236,6 @@ class GWDUserRecommender(UserRecommenderMixin):
         """ generate recommendation list for target user: user_id
         """
         size = self._size
-        con_user_ids = self.get_connected_users(user_id)
-        if len(block_list) > 0:
-            # if block_list is not empty, acquire con_user_ids
-            block_list.extend(con_user_ids)
-        else:
-            block_list = con_user_ids
 
         # get a complete list of recommended user ordered
         # by distance
@@ -271,14 +259,23 @@ class GWDUserRecommender(UserRecommenderMixin):
             return suggestion
 
         else:
-            # when
+            # first time to rank candidates since late update of GDL algorithm
             user_gid = self._return_user_group(user_id)
-            cand_user_ids, cand_user_dist = self._pdm_container[user_gid].list_all_dist(user_id)
+            # list all possible condidates
+            cand_user_ids = self._user_ids
+            # remove connected users
+            block_list = self.get_connected_users(user_id)
+            block_list.append(user_id)
+            # retrieve recommended list
+            if user_id in self._recommended_user_dict:
+                recommended = self._recommended_user_dict[user_id]
+                block_list.extend(recommended)
 
-            # remove connected users from candidate list
-            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in block_list]
-            cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
-            cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
+            cand_user_ids = [uid for uid in cand_user_ids if not uid in block_list]
+            cand_user_dist = [None] * len(cand_user_ids)
+            if len(cand_user_ids) > 0:
+                for ii, cand_user_id in enumerate(cand_user_ids):
+                    cand_user_dist[ii] = self._get_distance(user_id, cand_user_id)
 
             # sort candidates by distance
             sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
