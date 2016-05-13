@@ -6,7 +6,6 @@ Date: 2016/04/05
 from numpy import array, vstack
 from pandas import DataFrame
 from . import UserRecommenderMixin
-from .PairwiseDistMatrix import PairwiseDistMatrix
 from ..groupwise_distance_learning.groupwise_distance_learner import GroupwiseDistLearner
 from ..distance_metrics import GeneralDistanceWrapper
 
@@ -184,9 +183,7 @@ class GWDUserRecommender(UserRecommenderMixin):
             else:
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
-
         # update attribute
-        # self._pdm_container = pdm_container
         self._fit_weights = fit_weights
         self._fit_groups = fit_groups
         self._all_group_ids = list(fit_groups.keys())
