@@ -104,6 +104,8 @@ class GWDUserRecommender(UserRecommenderMixin):
         # store orderred unconnected users
         # and the container will be reset per distance metrics update
         self._ordered_cand_dict = {}
+        # store users had been ever recommended
+        self._recommended_user_dict = {}
 
         # Groupwise Distance Learner output container
         self._fit_weights = {}
@@ -134,10 +136,10 @@ class GWDUserRecommender(UserRecommenderMixin):
         # initial the learning of embedded GDL algorithm
         if self._iter_counter == 0:
             # avoid repeated initial learning
-            try:
+            if len(self._fit_weights) > 0:
                 fit_weights, fit_groups = _consolidate_learned_info(self.gwd_learner,
                                                                     self._buffer_min_size)
-            except:
+            else:
                 self.gwd_learner.fit(self._user_ids,
                                      self._user_profiles,
                                      self._user_connections)
@@ -259,6 +261,13 @@ class GWDUserRecommender(UserRecommenderMixin):
             else:
                 suggestion = sorted_cand_uids
                 self._ordered_cand_dict[user_id] = []
+
+            # store recommended users
+            if user_id in self._recommended_user_dict:
+                self._recommended_user_dict[user_id].append(suggestion)
+            else:
+                self._recommended_user_dict[user_id] = suggestion
+
             return suggestion
 
         else:
@@ -275,9 +284,19 @@ class GWDUserRecommender(UserRecommenderMixin):
             sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
             sorted_cand_uids = [uid for uid, _ in sorted_list]
 
+            # list in dicitonary is immutable
+            # sorted_cand_uids is a pointer to
+            # the element of a dicitonary
             suggestion = sorted_cand_uids[:size]
             del sorted_cand_uids[:size]
 
             # append the ordered list
             self._ordered_cand_dict[user_id] = sorted_cand_uids
+
+            # append to ever recommended list
+            if user_id in self._recommended_user_dict:
+                self._recommended_user_dict[user_id].append(suggestion)
+            else:
+                self._recommended_user_dict[user_id] = suggestion
+
             return suggestion
