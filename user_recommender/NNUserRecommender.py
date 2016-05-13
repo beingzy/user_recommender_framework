@@ -10,7 +10,7 @@ from .PairwiseDistMatrix import PairwiseDistMatrix
 
 class NNUserRecommender(UserRecommenderMixin):
 
-    def __init__(self, user_ids, user_profiles, user_connections):
+    def __init__(self, user_ids, user_profiles, user_connections, weights=None):
         super().__init__()
         # load user-related information
         self.load_user_ids(user_ids)
@@ -27,7 +27,7 @@ class NNUserRecommender(UserRecommenderMixin):
         # learn which features of user_profile are categorical
         self._general_dist_wrapper.fit(self._user_profiles)
         # initiate default weights for distance caluclation
-        self._general_dist_wrapper.load_weights(weights=None)
+        self._general_dist_wrapper.load_weights(weights)
         # extract function method for PairwiseDistMatrix
         fit_dist_func = self._general_dist_wrapper.dist_euclidean
 
@@ -38,6 +38,12 @@ class NNUserRecommender(UserRecommenderMixin):
         self._dist_matrix.update_distance_matrix()
         # defulat maximum number of suggsetion per recommendation query
         self._size = 5
+
+        # store ordered un-connected users
+        # which would be reset per every
+        # distance metrics update
+        self._ordered_cand_dict = {}
+        self._rejected_user_dict = {}
 
     def _update_dist_func(self):
         self._general_dist_wrapper.fit(self._user_profiles)
@@ -90,7 +96,7 @@ class NNUserRecommender(UserRecommenderMixin):
             sorted_cand_uids = self._ordered_cand_dict[user_id]
             if len(sorted_cand_uids) > size:
                 suggestion = sorted_cand_uids[:size]
-                del sorted_cand_uids[:size]
+                del self._ordered_cand_dict[user_id][:size]
             else:
                 suggestion = sorted_cand_uids
                 self._ordered_cand_dict[user_id] = []
@@ -114,6 +120,12 @@ class NNUserRecommender(UserRecommenderMixin):
 
             self._ordered_cand_dict[user_id] = sorted_cand_uids
             return suggestion
+
+    def update_reject_dict(self, user_id, rejected_list):
+        if user_id in self._rejected_user_dict:
+            self._rejected_user_dict[user_id].extend(rejected_list)
+        else:
+            self._rejected_user_dict[user_id] = rejected_list
 
 
 class DNNUserRecommender(NNUserRecommender):

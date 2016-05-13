@@ -94,9 +94,18 @@ def common_edge_ratio(ref_user_connections, eval_user_connections, is_directed=F
     ref_user_connections = _normalize_connections(ref_user_connections, is_directed)
     eval_user_connections = _normalize_connections(eval_user_connections, is_directed)
 
-    tot_common = sum([1 for item in eval_user_connections if item in ref_user_connections])
-    union_size = len(ref_user_connections) + len(eval_user_connections) - tot_common
+    if is_directed:
+        ref_graph, eval_graph = DiGraph(), DiGraph()
+    else:
+        ref_graph, eval_graph = Graph(), Graph()
 
+    ref_graph.add_edges_from(ref_user_connections)
+    eval_graph.add_edges_from(eval_user_connections)
+
+    ref_edges, eval_edges = ref_graph.edges(), eval_graph.edges()
+
+    tot_common = sum([1 if edge in ref_edges else 0 for edge in eval_edges])
+    union_size = len(ref_edges) + len(eval_edges) - tot_common
     return tot_common / union_size
 
 
