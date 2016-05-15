@@ -105,7 +105,7 @@ class NNUserRecommender(UserRecommenderMixin):
             return suggestion
 
         else:
-            cand_user_ids, cand_user_dist = self._dist_matrix.list_all_dist(user_id)
+            cand_user_ids = self._user_ids
             con_user_ids = self.get_connected_users(user_id)
             if len(block_list) == 0:
                 block_list = con_user_ids + [user_id]
@@ -113,10 +113,10 @@ class NNUserRecommender(UserRecommenderMixin):
                 block_list.extend(con_user_ids + [user_id])
 
             # remove connected users from condidate list
-            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in block_list]
+            keep_idx = [ii for ii, uid in enumerate(cand_user_ids) if not uid in block_list]
             cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
             cand_user_dist = []
-            for ii, cand_user_id in cand_user_ids:
+            for ii, cand_user_id in enumerate(cand_user_ids):
                 dist = self._get_distance(user_id, cand_user_id)
                 cand_user_dist.append(dist)
 
