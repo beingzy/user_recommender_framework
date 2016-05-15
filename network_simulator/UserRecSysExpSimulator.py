@@ -271,7 +271,6 @@ class UserRecSysExpSimulator(object):
         exp_records = []
         with tqdm(total=max_iter) as pbar:
             for ii in range(max_iter):
-                #try:
                 start_time = datetime.now()
 
                 record = self._update_one_step()
@@ -290,10 +289,7 @@ class UserRecSysExpSimulator(object):
                 if self._no_growth_counter >= self._no_growth_max:
                     warnings.warn("experiment stops after reaching max number of no-growth iteration!")
                     break
-                #except:
-                #    msg = "".join(["Error Happend, experiment hault earlier than design!"])
-                #    warnings.warn(msg)
-                #    break
+
                 pbar.update()
 
     def sys_reset(self):
