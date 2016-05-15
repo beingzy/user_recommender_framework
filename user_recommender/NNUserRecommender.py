@@ -23,19 +23,12 @@ class NNUserRecommender(UserRecommenderMixin):
         self._ordered_cand_dict = {}
 
         # load generalized distance wrapper to deal with cateogrical features
-        self._general_dist_wrapper = GeneralDistanceWrapper()
+        self._gd_wrapper = GeneralDistanceWrapper()
         # learn which features of user_profile are categorical
-        self._general_dist_wrapper.fit(self._user_profiles)
+        self._gd_wrapper.fit(self._user_profiles)
         # initiate default weights for distance caluclation
-        self._general_dist_wrapper.load_weights(weights)
-        # extract function method for PairwiseDistMatrix
-        fit_dist_func = self._general_dist_wrapper.dist_euclidean
+        self._gd_wrapper.load_weights(weights)
 
-        # create distance matrix
-        self._dist_matrix = PairwiseDistMatrix(self._user_ids, self._user_profiles)
-        # overwrite PairwiseDistMatrix's default distance function
-        self._dist_matrix.set_dist_func(fit_dist_func)
-        self._dist_matrix.update_distance_matrix()
         # defulat maximum number of suggsetion per recommendation query
         self._size = 5
 
@@ -46,12 +39,21 @@ class NNUserRecommender(UserRecommenderMixin):
         self._rejected_user_dict = {}
 
     def _update_dist_func(self):
-        self._general_dist_wrapper.fit(self._user_profiles)
-        fit_dist_func = self._general_dist_wrapper.dist_euclidean
+        self._gd_wrapper.fit(self._user_profiles)
+        fit_dist_func = self._gd_wrapper.dist_euclidean
         self._dist_matrix.set_dist_func(fit_dist_func)
 
     def set_recommendation_size(self, size=5):
         self._size = size
+
+    def _get_distance(self, a_user_id, b_user_id):
+        """ return distance between two user
+        """
+        a_user_idx = [i for i, uid in enumerate(self._user_ids) if uid == a_user_id][0]
+        b_user_idx = [i for i, uid in enumerate(self._user_ids) if uid == b_user_id][0]
+        a_user_profile = self._user_profiles[a_user_idx, :]
+        b_user_profile = self._user_profiles[b_user_idx, :]
+        return self._gd_wrapper.dist_euclidean(a_user_profile, b_user_profile)
 
     def update(self, **kwargs):
         """ update social network """
@@ -105,11 +107,18 @@ class NNUserRecommender(UserRecommenderMixin):
         else:
             cand_user_ids, cand_user_dist = self._dist_matrix.list_all_dist(user_id)
             con_user_ids = self.get_connected_users(user_id)
+            if len(block_list) == 0:
+                block_list = con_user_ids + [user_id]
+            else:
+                block_list.extend(con_user_ids + [user_id])
 
             # remove connected users from condidate list
-            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in con_user_ids]
+            keep_idx = [ii for ii, cand_user_id in enumerate(cand_user_ids) if not cand_user_id in block_list]
             cand_user_ids = [cand_user_ids[ii] for ii in keep_idx]
-            cand_user_dist = [cand_user_dist[ii] for ii in keep_idx]
+            cand_user_dist = []
+            for ii, cand_user_id in cand_user_ids:
+                dist = self._get_distance(user_id, cand_user_id)
+                cand_user_dist.append(dist)
 
             # sort candidates by distance
             sorted_list = sorted(zip(cand_user_ids, cand_user_dist), key=lambda pp: pp[1])
@@ -117,8 +126,8 @@ class NNUserRecommender(UserRecommenderMixin):
 
             suggestion = sorted_cand_uids[:size]
             del sorted_cand_uids[:size]
+            self._ordered_cand_dict[user_id] = sorted_cand_uids.copy()
 
-            self._ordered_cand_dict[user_id] = sorted_cand_uids
             return suggestion
 
     def update_reject_dict(self, user_id, rejected_list):
