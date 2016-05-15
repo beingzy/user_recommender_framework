@@ -36,7 +36,7 @@ class NNUserRecommender(UserRecommenderMixin):
         # which would be reset per every
         # distance metrics update
         self._ordered_cand_dict = {}
-        self._rejected_user_dict = {}
+        self._recommended_user_dict = {}
 
     def _update_dist_func(self):
         self._gd_wrapper.fit(self._user_profiles)
@@ -131,10 +131,10 @@ class NNUserRecommender(UserRecommenderMixin):
             return suggestion
 
     def update_reject_dict(self, user_id, rejected_list):
-        if user_id in self._rejected_user_dict:
-            self._rejected_user_dict[user_id].extend(rejected_list)
+        if user_id in self._recommended_user_dict:
+            self._recommended_user_dict[user_id].extend(rejected_list)
         else:
-            self._rejected_user_dict[user_id] = rejected_list
+            self._recommended_user_dict[user_id] = rejected_list
 
 
 class DNNUserRecommender(NNUserRecommender):

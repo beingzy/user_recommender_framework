@@ -176,8 +176,8 @@ class UserRecSysExpSimulator(object):
 
             for ii, user_id in enumerate(uniq_user_ids):
                 # retrieve recommended users
-                # if user_id in self._rejected_user_dict:
-                #    block_list = self._rejected_user_dict[user_id]
+                # if user_id in self._recommended_user_dict:
+                #    block_list = self._recommended_user_dict[user_id]
                 # else:
                 #    block_list = []
 
