@@ -282,7 +282,7 @@ class GWDUserRecommender(UserRecommenderMixin):
             del sorted_cand_uids[:size]
 
             # append the ordered list
-            self._ordered_cand_dict[user_id] = sorted_cand_uids
+            self._ordered_cand_dict[user_id] = sorted_cand_uids.copy()
 
             # append to ever recommended list
             if user_id in self._recommended_user_dict:
