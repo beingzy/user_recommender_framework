@@ -9,7 +9,7 @@ from ..groupwise_distance_learning.groupwise_distance_learner import GroupwiseDi
 from ..distance_metrics import GeneralDistanceWrapper
 
 
-def _consolidate_learned_info(gwd_learner, buffer_min_size=None):
+def _consolidate_learned_info(gwd_learner, buffer_min_size=1):
     """ process buffer group's users either to stay independent
         or merge into largest group.
         It returns a consolidated set of fit_weights and fit_group
@@ -35,7 +35,7 @@ def _consolidate_learned_info(gwd_learner, buffer_min_size=None):
     buffer_group_size = len(buffer_group)
     if buffer_group_size > 0:
 
-        if buffer_group_size < buffer_min_size:
+        if buffer_group_size <= buffer_min_size:
             group_sizes = [len(fit_groups[gid]) for gid in group_ids]
             # select first one among ties
             largest_group_id = [gid for gid, gsize in zip(group_ids, group_sizes) \
@@ -80,9 +80,9 @@ class GWDUserRecommender(UserRecommenderMixin):
         # collect parameters from kwargs, this argument
         # detemine if buffer group should become an independent group
         # with even weights for recommendation
-        try:
+        if "buffer_min_size" in kwargs:
             self._buffer_min_size = kwargs["buffer_min_size"]
-        except:
+        else:
             self._buffer_min_size = None # load function default value
 
         # store attribute
