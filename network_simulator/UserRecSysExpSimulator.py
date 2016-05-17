@@ -258,9 +258,10 @@ class UserRecSysExpSimulator(object):
             exp_record = {"iteration": self._iteration,
                           "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
                           "time_cost_seconds": total_cost,
-                          "num_new_connections_size": now_num_edges,
-                          "now_user_connections_size": ref_num_edges,
-                          "ref_user_connections_size": len(ref_graph.edges()),
+                          "num_new_connections_size": new_added_conns,
+                          "old_user_connections_size": old_tot_conns, 
+                          "now_user_connections_size": now_num_edges,
+                          "ref_user_connections_size": ref_num_edges,
                           "tot_suggestions": tot_suggestions,
                           "tot_rejections": tot_rejections,
                           "tot_remain_candidates": cand_size
@@ -290,7 +291,6 @@ class UserRecSysExpSimulator(object):
         fname = self.name + start_time.strftime("_%Y%m%d_%H%M%S.csv")
         outfile = join(self._outpath, fname)
 
-        exp_records = []
         with tqdm(total=max_iter) as pbar:
             for ii in range(max_iter):
                 start_time = datetime.now()
@@ -299,7 +299,6 @@ class UserRecSysExpSimulator(object):
                 # collect time per iteration
                 time_cost = (datetime.now() - start_time).total_seconds()
                 record["time_cost_min"] = round(time_cost / 60, 1)
-                exp_records.append(record)
 
                 # write out test results
                 if os.path.isfile(outfile):
