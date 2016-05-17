@@ -50,6 +50,9 @@ class UserRecSysExpSimulator(object):
         self._init_user_connections = None
         self._ref_user_connections = None
 
+        # property
+        self._total_edges_ref = None
+
         # experimentation information
         # initilize the experiment setting and can be modified anytime later
         # until the moment when the experiment starts
@@ -233,17 +236,36 @@ class UserRecSysExpSimulator(object):
             for k in recommender_memory.keys():
                 cand_size += len(recommender_memory[k])
 
+            # measure the network
+            if self._is_directed:
+                now_graph = DiGraph()
+            else:
+                now_graph = Graph()
+
+            if self._total_edges_ref is None:
+                if self._is_directed:
+                    ref_graph = DiGraph()
+                else:
+                    ref_graph = Graph()
+                ref_graph.add_edges_from(self._evaluator._ref_user_connections)
+                self._total_edges_ref = len(ref_graph.edges())
+
+            now_graph.add_edges_from(self._recommender._user_connections)
+            now_num_edges = len(now_graph.edges())
+            ref_num_edges = self._total_edges_ref
+
             # collect information
             exp_record = {"iteration": self._iteration,
                           "start_time": start_time.strftime("%Y-%m-%d %H:%M:%S"),
                           "time_cost_seconds": total_cost,
-                          "num_new_connections_size": new_added_conns,
-                          "now_user_connections_size": len(self._recommender._user_connections),
-                          "ref_user_connections_size": len(self._evaluator._ref_user_connections),
+                          "num_new_connections_size": now_num_edges,
+                          "now_user_connections_size": ref_num_edges,
+                          "ref_user_connections_size": len(ref_graph.edges()),
                           "tot_suggestions": tot_suggestions,
                           "tot_rejections": tot_rejections,
                           "tot_remain_candidates": cand_size
                           }
+
             exp_record.update(eval_score)
 
             # mark advacned of experiment
